@@ -47,9 +47,61 @@ class SolveLLS(SolveMinProbl):
         self.min = np.linalg.norm(A@w_hat-y)**2
         return
 
+
+class SolveGrad(SolveMinProbl):
+    """
+    -----------------------------------------------
+    This class is used to solve iteratively 
+    minimization problems using the gradient method
+    -----------------------------------------------
+    The termination condition is given by a maximum 
+    number of iterations whose default value is 100
+    -----------------------------------------------
+    """
+
+    def run(self, gamma=1e-3, Nit=100):
+        self.err = np.zeros((Nit, 2), dtype=float)
+        A = self.matr
+        y = self.vect
+
+        w = np.random.rand(self.Nf,)
+
+        for it in range(Nit):
+            grad = 2*A.T@(A@w - y)
+            w = w - gamma*grad
+            self.err[it, 0] = it
+            self.err[it, 1] = np.linalg.norm(A@w - y)**2
+
+        self.sol = w
+        self.min = self.err[it, 1]
+
+    def plot_err(self, title='Square error', logy=0, logx=0):
+        """
+        This function allows to plot the error 
+        value at each iteration of the gradient method
+        """
+        err = self.err
+        plt.figure()
+
+        if (logy == 0) & (logx == 0):
+            plt.plot(err[:, 0], err[:, 1])
+        if (logy == 1) & (logx == 0):
+            plt.semilogy(err[:, 0], err[:, 1])
+        if (logy == 0) & (logx == 1):
+            plt.semilogx(err[:, 0], err[:, 1])
+        if (logy == 1) & (logx == 1):
+            plt.semilogx(err[:, 1], err[:, 1])
+        plt.xlabel('n')
+        plt.ylabel('e(n)')
+        plt.title(title)
+        plt.margins(0.01, 0.1)
+        plt.grid()
+        plt.show()
+        return
+
+
 # %% This section will only run if the file 'minimization.py'
 # is run "directly" (i.e., if it is called as % python3 minimization.py)
-
 
 if __name__ == '__main__':
     Np = 100
