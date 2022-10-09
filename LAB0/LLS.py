@@ -32,3 +32,5 @@ plt.legend()# show the legend
 plt.grid() # show the grid
 plt.title('Comparison between w and w_hat')# set the title
 plt.show()# show the figure on the screen
+
+#test github
