@@ -7,7 +7,7 @@ class SolveMinProbl:
     This class is used to solve mi
     """
 
-    def __init__(self, y=np.ones((3,)), A=np.eye(3)):
+    def __init__(self, y=np.ones(3,), A=np.eye(3)):
         self.matr = A
         self.NP = y.shape[0]
         self.Nf = A.shape[1]
@@ -22,7 +22,7 @@ class SolveMinProbl:
         plt.plot(n, w_hat)
         plt.xlabel('n')
         plt.ylabel('$\hat{w}(n)$')
-        plt.title('Title')
+        plt.title(title)
         plt.grid()
         plt.show()
         return
@@ -63,6 +63,7 @@ class SolveGrad(SolveMinProbl):
         self.err = np.zeros((Nit, 2), dtype=float)
         A = self.matr
         y = self.vect
+        self.Nit = Nit
 
         w = np.random.rand(self.Nf,)
 
@@ -102,7 +103,7 @@ class SolveGrad(SolveMinProbl):
 
 # %% This section will only run if the file 'minimization.py'
 # is run "directly" (i.e., if it is called as % python3 minimization.py)
-
+'''
 if __name__ == '__main__':
     Np = 100
     Nf = 4
@@ -114,3 +115,4 @@ if __name__ == '__main__':
     m.run()
     m.print_result('LLS')
     m.plot_w_hat('LLS')
+'''
