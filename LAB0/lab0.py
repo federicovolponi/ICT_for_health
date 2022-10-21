@@ -1,16 +1,18 @@
 import sub.minimization as mymin
 import numpy as np
 
-np.random.seed(50)
+np.random.seed(0)
 #np.random.seed(315054)
 
 Np = 100
 Nf = 4
 
 A = np.random.randn(Np, Nf)
-w = np.random.randn(Nf,)  # random column vector
+w = np.random.randn(Nf, 1)  # random column vector
 print(f"Real value of w : {w}")
+
 y = A@w
+'''
 m = mymin.SolveLLS(y, A)
 m.run()
 m.print_result('LLS')
@@ -25,3 +27,7 @@ logx = 0
 logy = 1
 g.plot_err('Gradient algorithmn: square error', logy, logx)  # inherited method
 g.plot_w_hat('Gradient algorithmn')  # inherited method
+'''
+g = mymin.steepestDescentAlgorithm(y, A)
+g.run()
+g.print_result('Steepest descent: ')

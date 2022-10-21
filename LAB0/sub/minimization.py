@@ -1,3 +1,5 @@
+#%%
+from re import A
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -101,18 +103,19 @@ class SolveGrad(SolveMinProbl):
         return
 
 
-# %% This section will only run if the file 'minimization.py'
-# is run "directly" (i.e., if it is called as % python3 minimization.py)
-'''
-if __name__ == '__main__':
-    Np = 100
-    Nf = 4
+class steepestDescentAlgorithm(SolveMinProbl):
 
-    A = np.random.randn(Np, Nf)
-    w = np.random.randn(Nf,)
-    y = A@w
-    m = SolveLLS(y, A)
-    m.run()
-    m.print_result('LLS')
-    m.plot_w_hat('LLS')
-'''
+    def run(self, Nit = 100):
+        A = self.matr
+        y = self.vect
+        self.Nit = Nit
+        hess = 2 * A.T @ A
+        w = np.random.rand(self.Nf, 1)
+        for i in range(Nit):
+            grad = 2*A.T@(A@w - y)
+            if np.linalg.norm(grad) > 0:
+                gamma = (np.linalg.norm(grad)**2)/(grad.T @ hess @ grad)
+                w = w - gamma*grad
+            
+        self.sol = w
+# %%
