@@ -1,4 +1,4 @@
-#%%
+import sub.regression as myreg
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -66,15 +66,16 @@ sy = ss['total_UPDRS']  #st. dev. of total UPDRS
 # Generate the normalized training and test datasets, remove unwanted regressors
 Xsh_norm=(Xsh-mm)/ss# normalized data
 ysh_norm=Xsh_norm['total_UPDRS']# regressand only
-#Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#'],axis=1)# regressors only
-Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#', 'Jitter:DDP', 'Shimmer:DDA'],axis=1)
+Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#'],axis=1)# regressors only
+#Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#', 'Jitter:DDP', 'Shimmer:DDA'],axis=1)
 X_tr_norm=Xsh_norm[0:Ntr]
 X_te_norm=Xsh_norm[Ntr:]
 y_tr_norm=ysh_norm[0:Ntr]
 y_te_norm=ysh_norm[Ntr:]
 #LLS regression
+#r = myreg(X_tr_norm, y_tr_norm)
+#re.LLS()
 w_hat=np.linalg.inv(X_tr_norm.T@X_tr_norm)@(X_tr_norm.T@y_tr_norm)
-
 regressors = list(X_tr_norm.columns)
 Nf = len(w_hat)
 nn = np.arange(Nf)
@@ -88,7 +89,6 @@ plt.grid()
 plt.tight_layout()
 plt.savefig('./myLLS-what.png')
 plt.show()
-
 #Evaluate y_hat for test and training set
 y_hat_te_norm = X_te_norm @ w_hat
 y_hat_tr_norm = X_tr_norm @ w_hat
