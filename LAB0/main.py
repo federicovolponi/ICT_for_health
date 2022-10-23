@@ -12,7 +12,7 @@ w = np.random.randn(Nf, 1)  # random column vector
 print(f"Real value of w : {w}")
 
 y = A@w
-'''
+
 m = mymin.SolveLLS(y, A)
 m.run()
 m.print_result('LLS')
@@ -27,7 +27,9 @@ logx = 0
 logy = 1
 g.plot_err('Gradient algorithmn: square error', logy, logx)  # inherited method
 g.plot_w_hat('Gradient algorithmn')  # inherited method
-'''
+
 g = mymin.steepestDescentAlgorithm(y, A)
 g.run()
 g.print_result('Steepest descent: ')
+g.plot_err('Steepest descent: square error', logy, logx)
+g.plot_w_hat('Steepest descent')

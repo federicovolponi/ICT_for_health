@@ -1,4 +1,3 @@
-#%%
 from re import A
 import numpy as np
 import matplotlib.pyplot as plt
@@ -67,7 +66,7 @@ class SolveGrad(SolveMinProbl):
         y = self.vect
         self.Nit = Nit
 
-        w = np.random.rand(self.Nf,)
+        w = np.random.rand(self.Nf, 1)
 
         for it in range(Nit):
             grad = 2*A.T@(A@w - y)
@@ -106,16 +105,48 @@ class SolveGrad(SolveMinProbl):
 class steepestDescentAlgorithm(SolveMinProbl):
 
     def run(self, Nit = 100):
+        self.err = np.zeros((Nit, 2), dtype=float)
         A = self.matr
         y = self.vect
         self.Nit = Nit
+        eps = 1e-8
         hess = 2 * A.T @ A
         w = np.random.rand(self.Nf, 1)
         for i in range(Nit):
             grad = 2*A.T@(A@w - y)
-            if np.linalg.norm(grad) > 0:
-                gamma = (np.linalg.norm(grad)**2)/(grad.T @ hess @ grad)
-                w = w - gamma*grad
+            gamma = (np.linalg.norm(grad)**2)/(grad.T @ hess @ grad)
+            wi = w
+            w = w - gamma*grad
+            self.err[i, 0] = i
+            self.err[i, 1] = np.linalg.norm(A@w - y)**2
+
+            if np.linalg.norm(w - wi) < eps:    # stopping condition
+                break
             
         self.sol = w
-# %%
+        self.min = self.err[i, 1]
+
+    def plot_err(self, title='Square error', logy=0, logx=0):
+        """
+        This function allows to plot the error 
+        value at each iteration of the gradient method
+        """
+        err = self.err
+        plt.figure()
+
+        if (logy == 0) & (logx == 0):
+            plt.plot(err[:, 0], err[:, 1])
+        if (logy == 1) & (logx == 0):
+            plt.semilogy(err[:, 0], err[:, 1])
+        if (logy == 0) & (logx == 1):
+            plt.semilogx(err[:, 0], err[:, 1])
+        if (logy == 1) & (logx == 1):
+            plt.semilogx(err[:, 1], err[:, 1])
+        plt.xlabel('n')
+        plt.ylabel('e(n)')
+        plt.title(title)
+        plt.margins(0.01, 0.1)
+        plt.grid()
+        plt.show()
+        return
+ 
