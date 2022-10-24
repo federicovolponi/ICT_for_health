@@ -40,7 +40,7 @@ plt.yticks(np.arange(len(features)), features, rotation = 0)
 plt.colorbar()
 plt.title("Correlation coefficients of the features")
 plt.tight_layout()
-plt.savefig("./corr_coeff.png")
+plt.savefig("ICT_for_health\LAB01\charts\corr_coeff.png")
 plt.show()
 plt.figure()
 
@@ -67,41 +67,26 @@ sy = ss['total_UPDRS']  #st. dev. of total UPDRS
 Xsh_norm=(Xsh-mm)/ss# normalized data
 ysh_norm=Xsh_norm['total_UPDRS']# regressand only
 Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#'],axis=1)# regressors only
-#Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#', 'Jitter:DDP', 'Shimmer:DDA'],axis=1)
-X_tr_norm=Xsh_norm[0:Ntr]
-X_te_norm=Xsh_norm[Ntr:]
-y_tr_norm=ysh_norm[0:Ntr]
-y_te_norm=ysh_norm[Ntr:]
+
 #LLS regression
-#r = myreg(X_tr_norm, y_tr_norm)
-#re.LLS()
-w_hat=np.linalg.inv(X_tr_norm.T@X_tr_norm)@(X_tr_norm.T@y_tr_norm)
-regressors = list(X_tr_norm.columns)
-Nf = len(w_hat)
-nn = np.arange(Nf)
-plt.figure(figsize=(6,4))
-plt.plot(nn,w_hat,'-o')
-ticks=nn
-plt.xticks(ticks, regressors, rotation=90)
-plt.ylabel(r'$\^w(n)$')
-plt.title('LLS-Optimized weights')
-plt.grid()
-plt.tight_layout()
-plt.savefig('./myLLS-what.png')
-plt.show()
-#Evaluate y_hat for test and training set
-y_hat_te_norm = X_te_norm @ w_hat
-y_hat_tr_norm = X_tr_norm @ w_hat
+#All the features
+r1 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
+r1.LLS("LLS-what-all.png")
+
+#Excluding Jitter:DDP and Shimmer:DDA
+Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
+r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
+r2.LLS("LLS-what.png")
 
 #De-normalize y_hat
-y_hat_tr=y_hat_tr_norm*sy+my
-y_tr=y_tr_norm*sy+my
-y_hat_te=y_hat_te_norm*sy+my
-y_te=y_te_norm*sy+my
+r1.y_hat_tr=r1.y_hat_tr*sy+my
+r1.y_tr=r1.y_tr*sy+my
+r1.y_hat_te=r1.y_hat_te*sy+my
+r1.y_te=r1.y_te*sy+my
 
 #Histogram of the error Y - Y_hat
-E_tr=(y_tr-y_hat_tr)# training
-E_te=(y_te-y_hat_te)# test
+E_tr=(r1.y_tr-r1.y_hat_tr)# training
+E_te=(r1.y_te-r1.y_hat_te)# test
 e=[E_tr,E_te]
 plt.figure(figsize=(6,4))
 plt.hist(e,bins=50,density=True, histtype='bar',label=['training','test'])
@@ -111,12 +96,12 @@ plt.legend()
 plt.grid()
 plt.title('LLS-Error histograms using all the training dataset')
 plt.tight_layout()
-plt.savefig('./LLS-hist.png')
+plt.savefig('ICT_for_health\LAB01\charts\LLS-hist.png')
 plt.show()
 
 #Plot regression line
 plt.figure(figsize=(6,4))
-plt.plot(y_te,y_hat_te,'.')
+plt.plot(r1.y_te,r1.y_hat_te,'.')
 plt.legend()
 v=plt.axis()
 plt.plot([v[0],v[1]],[v[0],v[1]],'r',linewidth=2)
@@ -126,9 +111,9 @@ plt.ylabel(r'$\^y$')
 plt.grid()
 plt.title('LLS-test')
 plt.tight_layout()
-plt.savefig('./LLS-yhat_vs_y.png')
+plt.savefig('ICT_for_health\LAB01\charts\LLS-yhat_vs_y.png')
 plt.show()
-
+""" 
 #Errors and coefficients
 E_tr_max=E_tr.max()
 E_tr_min=E_tr.min()
@@ -155,3 +140,4 @@ p=np.array([
 results=pd.DataFrame(p,columns=cols,index=rows)
 print(results)
 # %%
+ """
