@@ -38,3 +38,62 @@ class regression:
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
         plt.show()
         return
+    
+    def plotHistrogram(self, title = "LLS-hist.png"):
+        E_tr=(self.y_tr-self.y_hat_tr)# training
+        E_te=(self.y_te-self.y_hat_te)# test
+        e=[E_tr,E_te]
+        plt.figure(figsize=(6,4))
+        plt.hist(e,bins=50,density=True, histtype='bar',label=['training','test'])
+        plt.xlabel(r'$e=y-\^y$')
+        plt.ylabel(r'$P(e$ in bin$)$')
+        plt.legend()
+        plt.grid()
+        plt.title('LLS-Error histograms using all the training dataset')
+        plt.tight_layout()
+        plt.savefig(f'ICT_for_health\LAB01\charts\{title}')
+        plt.show()
+        return
+
+    def plotRegressionLine(self, title = "LLS-yhat_vs_y.png"):
+        plt.figure(figsize=(6,4))
+        plt.plot(self.y_te,self.y_hat_te,'.', label = "all")
+        plt.legend()
+        v=plt.axis()
+        plt.plot([v[0],v[1]],[v[0],v[1]],'r',linewidth=2)
+        plt.xlabel(r'$y$')
+        plt.axis('square')
+        plt.ylabel(r'$\^y$')
+        plt.grid()
+        plt.title('LLS-test')
+        plt.tight_layout()
+        plt.savefig(f'ICT_for_health\LAB01\charts\{title}')
+        plt.show()
+
+    def errorsAndCoefficients(self):
+        E_tr=(self.y_tr-self.y_hat_tr)# training
+        E_te=(self.y_te-self.y_hat_te)# test
+        E_tr_max=E_tr.max()
+        E_tr_min=E_tr.min()
+        E_tr_mu=E_tr.mean()
+        E_tr_sig=E_tr.std()
+        E_tr_MSE=np.mean(E_tr**2)
+        R2_tr=1-E_tr_MSE/(np.std(self.y_tr)**2)
+        c_tr=np.mean((self.y_tr-self.y_tr.mean())*(self.y_hat_tr-self.y_hat_tr.mean()))/(self.y_tr.std()*self.y_hat_tr.std())
+        E_te_max=E_te.max()
+        E_te_min=E_te.min()
+        E_te_mu=E_te.mean()
+        E_te_sig=E_te.std()
+        E_te_MSE=np.mean(E_te**2)
+        R2_te=1-E_te_MSE/(np.std(self.y_te)**2)
+        c_te=np.mean((self.y_te-self.y_te.mean())*(self.y_hat_te-self.y_hat_te.mean()))/(self.y_te.std()*self.y_hat_te.std())
+
+        cols=['min','max','mean','std','MSE','R^2','corr_coeff']
+        rows=['Training','test']
+        p=np.array([
+            [E_tr_min,E_tr_max,E_tr_mu,E_tr_sig,E_tr_MSE,R2_tr,c_tr],
+            [E_te_min,E_te_max,E_te_mu,E_te_sig,E_te_MSE,R2_te,c_te],
+                    ])
+
+        results=pd.DataFrame(p,columns=cols,index=rows)
+        print(results, "\n\n")

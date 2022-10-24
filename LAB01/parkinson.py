@@ -12,7 +12,7 @@ features = list(x.columns)
 print(features)
 '''
 subj = pd.unique(x['subject#']) #unique values of patient ID
-print("The number of distinct patients in the dataset is ", len(subj))
+print("\nThe number of distinct patients in the dataset is ", len(subj))
 
 X = pd.DataFrame()
 for k in subj:
@@ -24,10 +24,10 @@ for k in subj:
     X = pd.concat([X,v], axis=0, ignore_index=True) #Concatenate the k-patients by row ignoring index
 
 features = list(x.columns)
-print("The dataset shape after the mean is: ", X.shape)
-print("The features of the dataset are ", len(features))
-print(features)
-print("\n\n\n\n")
+print("\nThe dataset shape after the mean is: ", X.shape)
+print("\nThe features of the dataset are ", len(features))
+print("\n", features)
+print("\n\n")
 Np, Nc = X.shape
 
 # Measure and show the covariance matrix
@@ -76,7 +76,7 @@ r1.LLS("LLS-what-all.png")
 #Excluding Jitter:DDP and Shimmer:DDA
 Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
 r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
-r2.LLS("LLS-what.png")
+r2.LLS()
 
 #De-normalize y_hat
 r1.y_hat_tr=r1.y_hat_tr*sy+my
@@ -84,60 +84,18 @@ r1.y_tr=r1.y_tr*sy+my
 r1.y_hat_te=r1.y_hat_te*sy+my
 r1.y_te=r1.y_te*sy+my
 
-#Histogram of the error Y - Y_hat
-E_tr=(r1.y_tr-r1.y_hat_tr)# training
-E_te=(r1.y_te-r1.y_hat_te)# test
-e=[E_tr,E_te]
-plt.figure(figsize=(6,4))
-plt.hist(e,bins=50,density=True, histtype='bar',label=['training','test'])
-plt.xlabel(r'$e=y-\^y$')
-plt.ylabel(r'$P(e$ in bin$)$')
-plt.legend()
-plt.grid()
-plt.title('LLS-Error histograms using all the training dataset')
-plt.tight_layout()
-plt.savefig('ICT_for_health\LAB01\charts\LLS-hist.png')
-plt.show()
+r1.plotHistrogram("LLS-hist_all.png")
+
+r2.y_hat_tr=r2.y_hat_tr*sy+my
+r2.y_tr=r2.y_tr*sy+my
+r2.y_hat_te=r2.y_hat_te*sy+my
+r2.y_te=r2.y_te*sy+my
+
+r2.plotHistrogram()
 
 #Plot regression line
-plt.figure(figsize=(6,4))
-plt.plot(r1.y_te,r1.y_hat_te,'.')
-plt.legend()
-v=plt.axis()
-plt.plot([v[0],v[1]],[v[0],v[1]],'r',linewidth=2)
-plt.xlabel(r'$y$')
-plt.axis('square')
-plt.ylabel(r'$\^y$')
-plt.grid()
-plt.title('LLS-test')
-plt.tight_layout()
-plt.savefig('ICT_for_health\LAB01\charts\LLS-yhat_vs_y.png')
-plt.show()
-""" 
-#Errors and coefficients
-E_tr_max=E_tr.max()
-E_tr_min=E_tr.min()
-E_tr_mu=E_tr.mean()
-E_tr_sig=E_tr.std()
-E_tr_MSE=np.mean(E_tr**2)
-R2_tr=1-E_tr_MSE/(np.std(y_tr)**2)
-c_tr=np.mean((y_tr-y_tr.mean())*(y_hat_tr-y_hat_tr.mean()))/(y_tr.std()*y_hat_tr.std())
-E_te_max=E_te.max()
-E_te_min=E_te.min()
-E_te_mu=E_te.mean()
-E_te_sig=E_te.std()
-E_te_MSE=np.mean(E_te**2)
-R2_te=1-E_te_MSE/(np.std(y_te)**2)
-c_te=np.mean((y_te-y_te.mean())*(y_hat_te-y_hat_te.mean()))/(y_te.std()*y_hat_te.std())
+r1.plotRegressionLine("y_hat_vs_y-all.png")
+r2.plotRegressionLine()
 
-cols=['min','max','mean','std','MSE','R^2','corr_coeff']
-rows=['Training','test']
-p=np.array([
-    [E_tr_min,E_tr_max,E_tr_mu,E_tr_sig,E_tr_MSE,R2_tr,c_tr],
-    [E_te_min,E_te_max,E_te_mu,E_te_sig,E_te_MSE,R2_te,c_te],
-            ])
-
-results=pd.DataFrame(p,columns=cols,index=rows)
-print(results)
-# %%
- """
+r1.errorsAndCoefficients()
+r2.errorsAndCoefficients()
