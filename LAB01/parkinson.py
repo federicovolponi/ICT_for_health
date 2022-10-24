@@ -72,12 +72,12 @@ Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#'],axis=1)# regressors only
 #All the features
 r1 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
 r1.LLS("LLS-what-all.png")
-
+#r1.steepestDescent()
 #Excluding Jitter:DDP and Shimmer:DDA
 Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
 r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
 r2.LLS()
-
+r2.steepestDescent()
 #De-normalize y_hat
 r1.y_hat_tr=r1.y_hat_tr*sy+my
 r1.y_tr=r1.y_tr*sy+my

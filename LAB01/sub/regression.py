@@ -39,6 +39,26 @@ class regression:
         plt.show()
         return
     
+    def steepestDescent(self, title ="SteepestDescent.png"):
+        m = mymin.steepestDescentAlgorithm(self.y_tr.to_numpy(), self.X_tr.to_numpy())
+        m.run()
+        self.w_hat = m.sol
+        self.y_hat_te = self.X_te @ self.w_hat
+        self.y_hat_tr = self.X_tr @ self.w_hat
+        regressors = list(self.X_tr.columns)
+        nn = np.arange(self.Nf)
+        plt.figure(figsize=(6,4))
+        plt.plot(nn,self.w_hat,'-o')
+        ticks=nn
+        plt.xticks(ticks, regressors, rotation=90)
+        plt.ylabel(r'$\^w(n)$')
+        plt.title('LLS-Optimized weights')
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
+        plt.show()
+        return
+    
     def plotHistrogram(self, title = "LLS-hist.png"):
         E_tr=(self.y_tr-self.y_hat_tr)# training
         E_te=(self.y_te-self.y_hat_te)# test
