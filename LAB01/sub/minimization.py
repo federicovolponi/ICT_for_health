@@ -7,7 +7,7 @@ class SolveMinProbl:
     This class is used to solve mi
     """
 
-    def __init__(self, y=np.ones(3,), A=np.eye(3)):
+    def __init__(self, y, A=np.eye(3)): #y=np.ones(3,)
         self.matr = A
         self.NP = y.shape[0]
         self.Nf = A.shape[1]
@@ -105,6 +105,7 @@ class steepestDescentAlgorithm(SolveMinProbl):
 
     def run(self, Nit = 100):
         self.err = np.zeros((Nit, 2), dtype=float)
+        grad = np.zeros((self.Nf, 1), dtype=float)
         A = self.matr
         y = self.vect
         self.Nit = Nit
@@ -112,7 +113,7 @@ class steepestDescentAlgorithm(SolveMinProbl):
         hess = 2 * A.T @ A
         w = np.random.rand(self.Nf, 1)
         for i in range(Nit):
-            grad = 2*A.T@(A@w - y)
+            grad = 2*A.T@(A@(w.reshape(len(w), 1)) - y.reshape(len(y), 1))
             gamma = (np.linalg.norm(grad)**2)/(grad.T @ hess @ grad)
             wi = w
             w = w - gamma*grad

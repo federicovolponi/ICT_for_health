@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-x = pd.read_csv("c:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")
+x = pd.read_csv("/home/federico/Coding/ICT_for_health/LAB01/parkinsons_updrs.csv")
 #Analysis of dataframe
 '''
 x.describe().T
@@ -41,7 +41,7 @@ plt.colorbar()
 plt.title("Correlation coefficients of the features")
 plt.tight_layout()
 plt.savefig("ICT_for_health\LAB01\charts\corr_coeff.png")
-plt.show()
+#plt.show()
 plt.figure()
 
 c.total_UPDRS.plot()
@@ -49,7 +49,7 @@ plt.grid()
 plt.xticks(np.arange(len(features)), features, rotation = 90)
 plt.title("corr. coeff among total UPDRS and the other features")
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 #Shuffle the data
 Xsh = X.sample(frac=1, replace=False, random_state=309709, axis=0, ignore_index=True)

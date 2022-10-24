@@ -36,11 +36,11 @@ class regression:
         plt.grid()
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
-        plt.show()
+        #plt.show()
         return
     
     def steepestDescent(self, title ="SteepestDescent.png"):
-        m = mymin.steepestDescentAlgorithm(self.y_tr.to_numpy(), self.X_tr.to_numpy())
+        m = mymin.steepestDescentAlgorithm(self.y_tr.values, self.X_tr.values)
         m.run()
         self.w_hat = m.sol
         self.y_hat_te = self.X_te @ self.w_hat
@@ -52,7 +52,7 @@ class regression:
         ticks=nn
         plt.xticks(ticks, regressors, rotation=90)
         plt.ylabel(r'$\^w(n)$')
-        plt.title('LLS-Optimized weights')
+        plt.title('SteepestDescent-Optimized weights')
         plt.grid()
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
@@ -72,7 +72,7 @@ class regression:
         plt.title('LLS-Error histograms using all the training dataset')
         plt.tight_layout()
         plt.savefig(f'ICT_for_health\LAB01\charts\{title}')
-        plt.show()
+        #plt.show()
         return
 
     def plotRegressionLine(self, title = "LLS-yhat_vs_y.png"):
