@@ -56,12 +56,18 @@ class regression:
         plt.grid()
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
-        plt.show()
+        #plt.show()
         return
     
     def plotHistrogram(self, title = "LLS-hist.png"):
-        E_tr=(self.y_tr-self.y_hat_tr)# training
-        E_te=(self.y_te-self.y_hat_te)# test
+        '''
+        y_tr = self.y_tr.values.reshape(len(self.y_tr), 1)
+        y_hat_tr = self.y_hat_tr.values.reshape(len(self.y_hat_tr), 1)
+        y_te = self.y_te.values.reshape(len(self.y_te), 1)
+        y_hat_te = self.y_hat_te.values.reshape(len(self.y_hat_te), 1)
+        '''
+        E_tr=(self.y_tr - self.y_hat_tr)# training
+        E_te=(self.y_te - self.y_hat_te)# test
         e=[E_tr,E_te]
         plt.figure(figsize=(6,4))
         plt.hist(e,bins=50,density=True, histtype='bar',label=['training','test'])
@@ -72,7 +78,7 @@ class regression:
         plt.title('LLS-Error histograms using all the training dataset')
         plt.tight_layout()
         plt.savefig(f'ICT_for_health\LAB01\charts\{title}')
-        #plt.show()
+        plt.show()
         return
 
     def plotRegressionLine(self, title = "LLS-yhat_vs_y.png"):
