@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -40,7 +41,9 @@ class regression:
         return
     
     def steepestDescent(self, title ="SteepestDescent.png"):
-        m = mymin.steepestDescentAlgorithm(self.y_tr.values, self.X_tr.values)
+        y_tr = self.y_tr.values
+        X_tr = self.X_tr.values
+        m = mymin.steepestDescentAlgorithm(y_tr, X_tr)
         m.run()
         self.w_hat = m.sol
         self.y_hat_te = self.X_te @ self.w_hat
@@ -66,8 +69,14 @@ class regression:
         y_te = self.y_te.values.reshape(len(self.y_te), 1)
         y_hat_te = self.y_hat_te.values.reshape(len(self.y_hat_te), 1)
         '''
-        E_tr=(self.y_tr - self.y_hat_tr)# training
-        E_te=(self.y_te - self.y_hat_te)# test
+        y_tr = self.y_tr.to_numpy()
+        y_hat_tr = self.y_hat_tr.to_numpy()
+        y_te = self.y_te.to_numpy()
+        y_hat_te = self.y_hat_te.to_numpy()
+        E_tr=(y_tr - y_hat_tr)# training
+        E_te=(y_te - y_hat_te)# test
+        #E_tr=(self.y_tr - self.y_hat_tr)# training
+        #E_te=(self.y_te - self.y_hat_te)# test
         e=[E_tr,E_te]
         plt.figure(figsize=(6,4))
         plt.hist(e,bins=50,density=True, histtype='bar',label=['training','test'])
@@ -77,7 +86,7 @@ class regression:
         plt.grid()
         plt.title('LLS-Error histograms using all the training dataset')
         plt.tight_layout()
-        plt.savefig(f'ICT_for_health\LAB01\charts\{title}')
+        plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
         plt.show()
         return
 
@@ -93,7 +102,7 @@ class regression:
         plt.grid()
         plt.title('LLS-test')
         plt.tight_layout()
-        plt.savefig(f'ICT_for_health\LAB01\charts\{title}')
+        plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
         plt.show()
 
     def errorsAndCoefficients(self):

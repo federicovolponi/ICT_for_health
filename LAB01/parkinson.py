@@ -6,7 +6,7 @@ import pandas as pd
 def denormalize(y, sy, my):
     return y*sy+my
 
-x = pd.read_csv("/home/federico/Coding/ICT_for_health/LAB01/parkinsons_updrs.csv")
+x = pd.read_csv("C:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")
 #Analysis of dataframe
 '''
 x.describe().T
@@ -43,7 +43,7 @@ plt.yticks(np.arange(len(features)), features, rotation = 0)
 plt.colorbar()
 plt.title("Correlation coefficients of the features")
 plt.tight_layout()
-plt.savefig("ICT_for_health\LAB01\charts\corr_coeff.png")
+plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeff.png")
 #plt.show()
 plt.figure()
 
@@ -79,20 +79,15 @@ r1.LLS("LLS-what-all.png")
 #Excluding Jitter:DDP and Shimmer:DDA
 Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
 r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
-r2.LLS()
-#r2.steepestDescent()
+#r2.LLS()
+r2.steepestDescent()
 #De-normalize y_hat
 
 r1.y_hat_te = denormalize(r1.y_hat_te, sy, my)
 r1.y_hat_tr = denormalize(r1.y_hat_tr, sy, my)
 r1.y_tr = denormalize(r1.y_tr, sy, my)
 r1.y_te = denormalize(r1.y_te, sy, my)
-'''
-r1.y_hat_tr=r1.y_hat_tr*sy+my
-r1.y_tr=r1.y_tr*sy+my
-r1.y_hat_te=r1.y_hat_te*sy+my
-r1.y_te=r1.y_te*sy+my
-'''
+
 r1.plotHistrogram("LLS-hist_all.png")
 
 r2.y_hat_te = denormalize(r2.y_hat_te, sy, my)
