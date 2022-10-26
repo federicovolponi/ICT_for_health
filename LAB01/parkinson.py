@@ -96,7 +96,7 @@ r2.y_tr = denormalize(r2.y_tr, sy, my)
 r2.y_te = denormalize(r2.y_te, sy, my)
 
 
-r2.plotHistrogram()
+r2.plotHistrogram("steepest-hist.png")
 
 #Plot regression line
 r1.plotRegressionLine("y_hat_vs_y-all.png")
