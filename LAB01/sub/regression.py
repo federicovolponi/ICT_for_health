@@ -87,7 +87,7 @@ class regression:
         plt.title('LLS-Error histograms using all the training dataset')
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
-        plt.show()
+        #plt.show()
         return
 
     def plotRegressionLine(self, title = "LLS-yhat_vs_y.png"):

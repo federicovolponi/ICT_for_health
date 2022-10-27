@@ -52,7 +52,8 @@ plt.grid()
 plt.xticks(np.arange(len(features)), features, rotation = 90)
 plt.title("corr. coeff among total UPDRS and the other features")
 plt.tight_layout()
-#plt.show()
+plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeffTotal.png")
+plt.show()
 
 #Shuffle the data
 Xsh = X.sample(frac=1, replace=False, random_state=309709, axis=0, ignore_index=True)
