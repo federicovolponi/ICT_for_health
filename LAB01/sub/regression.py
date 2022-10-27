@@ -106,22 +106,26 @@ class regression:
         plt.show()
 
     def errorsAndCoefficients(self):
-        E_tr=(self.y_tr-self.y_hat_tr)# training
-        E_te=(self.y_te-self.y_hat_te)# test
+        y_tr = self.y_tr.values
+        y_hat_tr = self.y_hat_tr.values
+        y_te = self.y_te.values
+        y_hat_te = self.y_hat_te.values
+        E_tr= y_tr.reshape(len(y_tr),1) - y_hat_tr.reshape(len(y_tr),1)# training
+        E_te= y_te.reshape(len(y_tr),1) - y_hat_te.reshape(len(y_tr),1) # test
         E_tr_max=E_tr.max()
         E_tr_min=E_tr.min()
         E_tr_mu=E_tr.mean()
         E_tr_sig=E_tr.std()
         E_tr_MSE=np.mean(E_tr**2)
         R2_tr=1-E_tr_MSE/(np.std(self.y_tr)**2)
-        c_tr=np.mean((self.y_tr-self.y_tr.mean())*(self.y_hat_tr-self.y_hat_tr.mean()))/(self.y_tr.std()*self.y_hat_tr.std())
+        c_tr=np.mean((y_tr.reshape(len(y_tr),1)-y_tr.reshape(len(y_tr),1).mean())*(y_hat_tr.reshape(len(y_tr),1)-y_hat_tr.reshape(len(y_tr),1).mean()))/(y_tr.reshape(len(y_tr),1).std()*y_hat_tr.reshape(len(y_tr),1).std())
         E_te_max=E_te.max()
         E_te_min=E_te.min()
         E_te_mu=E_te.mean()
         E_te_sig=E_te.std()
         E_te_MSE=np.mean(E_te**2)
         R2_te=1-E_te_MSE/(np.std(self.y_te)**2)
-        c_te=np.mean((self.y_te-self.y_te.mean())*(self.y_hat_te-self.y_hat_te.mean()))/(self.y_te.std()*self.y_hat_te.std())
+        c_te=np.mean((y_te.reshape(len(y_tr),1)- y_te.reshape(len(y_tr),1).mean())*(y_hat_te.reshape(len(y_tr),1)-y_hat_te.reshape(len(y_tr),1).mean()))/(y_te.reshape(len(y_tr),1).std()*y_hat_te.reshape(len(y_tr),1).std())
 
         cols=['min','max','mean','std','MSE','R^2','corr_coeff']
         rows=['Training','test']
