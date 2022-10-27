@@ -63,12 +63,7 @@ class regression:
         return
     
     def plotHistrogram(self, title = "LLS-hist.png"):
-        '''
-        y_tr = self.y_tr.values.reshape(len(self.y_tr), 1)
-        y_hat_tr = self.y_hat_tr.values.reshape(len(self.y_hat_tr), 1)
-        y_te = self.y_te.values.reshape(len(self.y_te), 1)
-        y_hat_te = self.y_hat_te.values.reshape(len(self.y_hat_te), 1)
-        '''
+        
         y_tr = self.y_tr.values
         y_hat_tr = self.y_hat_tr.values
         y_te = self.y_te.values
