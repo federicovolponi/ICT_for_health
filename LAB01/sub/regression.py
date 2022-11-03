@@ -151,7 +151,7 @@ class regression:
             newrow_yte = self.y_te.values[neighbors_index[i]]
             neighbors_ytr.append(newrow_ytr)
             neighbors_yte.append(newrow_yte)
-            neighbors_Xtr.append(newrow_Xtr) #Vector containing the classes of the k-nearest elements
+            neighbors_Xtr.append(newrow_Xtr)
             neighbors_Xte.append(newrow_Xte)
 
         self.X_tr = pd.DataFrame(neighbors_Xtr)
