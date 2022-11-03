@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sub.minimization as mymin
 
+def euclidean_distance(p, q):
+  dist = np.sqrt(np.sum(np.square(p - q)))
+  return dist
 
 class regression:
     def __init__(self, X, y, Ntr):
@@ -63,15 +66,12 @@ class regression:
         return
     
     def plotHistrogram(self, title = "LLS-hist.png"):
-        
         y_tr = self.y_tr.values
         y_hat_tr = self.y_hat_tr.values
         y_te = self.y_te.values
         y_hat_te = self.y_hat_te.values
         E_tr= y_tr.reshape(len(y_tr),1) - y_hat_tr.reshape(len(y_tr),1)# training
         E_te= y_te.reshape(len(y_tr),1) - y_hat_te.reshape(len(y_tr),1) # test
-        #E_tr=(self.y_tr - self.y_hat_tr)# training
-        #E_te=(self.y_te - self.y_hat_te)# test
         e=[E_tr.reshape(len(E_tr), ),E_te.reshape(len(E_tr), )]
         plt.figure(figsize=(6,4))
         plt.hist(e,bins=50,density=True, histtype='bar',label=['training','test'])
@@ -112,14 +112,14 @@ class regression:
         E_tr_mu=E_tr.mean()
         E_tr_sig=E_tr.std()
         E_tr_MSE=np.mean(E_tr**2)
-        R2_tr=1-E_tr_MSE/(np.std(self.y_tr)**2)
+        R2_tr=1-E_tr_MSE/(np.std(y_tr)**2)
         c_tr=np.mean((y_tr.reshape(len(y_tr),1)-y_tr.reshape(len(y_tr),1).mean())*(y_hat_tr.reshape(len(y_tr),1)-y_hat_tr.reshape(len(y_tr),1).mean()))/(y_tr.reshape(len(y_tr),1).std()*y_hat_tr.reshape(len(y_tr),1).std())
         E_te_max=E_te.max()
         E_te_min=E_te.min()
         E_te_mu=E_te.mean()
         E_te_sig=E_te.std()
         E_te_MSE=np.mean(E_te**2)
-        R2_te=1-E_te_MSE/(np.std(self.y_te)**2)
+        R2_te=1-E_te_MSE/(np.std(y_te)**2)
         c_te=np.mean((y_te.reshape(len(y_tr),1)- y_te.reshape(len(y_tr),1).mean())*(y_hat_te.reshape(len(y_tr),1)-y_hat_te.reshape(len(y_tr),1).mean()))/(y_te.reshape(len(y_tr),1).std()*y_hat_te.reshape(len(y_tr),1).std())
 
         cols=['min','max','mean','std','MSE','R^2','corr_coeff']
@@ -131,3 +131,30 @@ class regression:
 
         results=pd.DataFrame(p,columns=cols,index=rows)
         print(results, "\n\n")
+
+    def localRegression(self, N):
+        dist = []
+        neighbors_index = []
+        neighbors_Xtr = pd.DataFrame()
+        neighbors_Xte = pd.DataFrame()
+        neighbors_ytr = []
+        neighbors_yte = []
+        
+        for i in range(self.Ntr):
+            dist.append(euclidean_distance(self.X_te.iloc[0], self.X_tr.iloc[i]))
+
+        neighbors_index = np.argsort(dist)
+        for i in range(N):
+            newrow_Xtr = self.X_tr.iloc[neighbors_index[i]]
+            newrow_Xte = self.X_te.iloc[neighbors_index[i]]
+            newrow_ytr = self.y_tr.iloc[neighbors_index[i]]
+            newrow_yte = self.y_te.iloc[neighbors_index[i]]
+            neighbors_ytr.append(newrow_ytr)
+            neighbors_yte.append(newrow_yte)
+            neighbors_Xtr=pd.concat([neighbors_Xtr, newrow_Xtr], axis=1, ignore_index=True) #Vector containing the classes of the k-nearest elements
+            neighbors_Xte=pd.concat([neighbors_Xte, newrow_Xte], axis=1, ignore_index=True)
+
+        self.X_tr = neighbors_Xtr.transpose()
+        self.X_te = neighbors_Xte.transpose()
+        self.y_tr = pd.DataFrame(neighbors_ytr)
+        self.y_te = pd.DataFrame(neighbors_yte)

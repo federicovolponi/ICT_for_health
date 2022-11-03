@@ -6,38 +6,11 @@ import pandas as pd
 def denormalize(y, sy, my):
     return y*sy+my
 
-def euclidean_distance(p, q):
-  dist = np.sqrt(np.sum(np.square(p - q)))
-  return dist
-
-def NCloserMatrix(sample, N):
-  dist = []
-  neighbors_index = []
-  neighbors =pd.DataFrame()
-  y_neighbors = []
-  #Create a vector with all the distances
-  for i in range(len(r2.X_tr)):
-    dist.append(euclidean_distance(sample, r2.X_tr.iloc[i]))
-
-  neighbors_index = np.argsort(dist)
-  for i in range(N):
-    newrow = r2.X_tr.iloc[neighbors_index[i]]
-    newrow_y = r2.y_tr.iloc[neighbors_index[i]]
-    y_neighbors.append(newrow_y)
-    neighbors=pd.concat([neighbors, newrow], axis=1, ignore_index=True) #Vector containing the classes of the k-nearest elements
-  
-  r2.X_tr = neighbors.transpose()
-  r2.y_tr = pd.DataFrame(y_neighbors)
-  pass
-
 x = pd.read_csv("C:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")
+
 #Analysis of dataframe
-'''
 x.describe().T
 x.info()
-features = list(x.columns)
-print(features)
-'''
 subj = pd.unique(x['subject#']) #unique values of patient ID
 print("\nThe number of distinct patients in the dataset is ", len(subj))
 
@@ -68,7 +41,7 @@ plt.colorbar()
 plt.title("Correlation coefficients of the features")
 plt.tight_layout()
 plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeff.png")
-#plt.show()
+plt.show()
 plt.figure()
 
 c.total_UPDRS.plot()
@@ -92,43 +65,38 @@ my = mm['total_UPDRS']  #mean of total_UPDRS
 sy = ss['total_UPDRS']  #st. dev. of total UPDRS
 
 # Generate the normalized training and test datasets, remove unwanted regressors
-Xsh_norm=(Xsh-mm)/ss# normalized data
-ysh_norm=Xsh_norm['total_UPDRS']# regressand only
-Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#'],axis=1)# regressors only
+Xsh_norm=(Xsh-mm)/ss  #normalized data
+ysh_norm=Xsh_norm['total_UPDRS']  #regressand only
+Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#'],axis=1) #regressors only
 
 #LLS regression
 #All the features
-
+'''
 r1 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
 #r1.LLS("LLS-what-all.png")
 #r1.steepestDescent()
-#Excluding Jitter:DDP and Shimmer:DDA
-Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
-r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
-NCloserMatrix(r2.X_te.iloc[0], 10)
-
-#r2.LLS()
-r2.steepestDescent()
-#De-normalize y_hat
 
 r1.y_hat_te = denormalize(r1.y_hat_te, sy, my)
 r1.y_hat_tr = denormalize(r1.y_hat_tr, sy, my)
 r1.y_tr = denormalize(r1.y_tr, sy, my)
 r1.y_te = denormalize(r1.y_te, sy, my)
 
-#r1.plotHistrogram("LLS-hist_all.png")
+r1.plotHistrogram("LLS-hist_all.png")
+r1.plotRegressionLine("y_hat_vs_y-all.png")
+r1.errorsAndCoefficients()
+'''
+#Excluding Jitter:DDP and Shimmer:DDA
+Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
+r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
+r2.localRegression(100)
+#r2.LLS()
+r2.steepestDescent()
 
 r2.y_hat_te = denormalize(r2.y_hat_te, sy, my)
 r2.y_hat_tr = denormalize(r2.y_hat_tr, sy, my)
 r2.y_tr = denormalize(r2.y_tr, sy, my)
 r2.y_te = denormalize(r2.y_te, sy, my)
 
-
 r2.plotHistrogram("steepest-hist.png")
-
-#Plot regression line
-#r1.plotRegressionLine("y_hat_vs_y-all.png")
 r2.plotRegressionLine()
-
-#r1.errorsAndCoefficients()
 r2.errorsAndCoefficients()
