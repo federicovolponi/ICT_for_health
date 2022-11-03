@@ -135,8 +135,8 @@ class regression:
     def localRegression(self, N):
         dist = []
         neighbors_index = []
-        neighbors_Xtr = pd.DataFrame()
-        neighbors_Xte = pd.DataFrame()
+        neighbors_Xtr = []
+        neighbors_Xte = []
         neighbors_ytr = []
         neighbors_yte = []
         
@@ -145,16 +145,16 @@ class regression:
 
         neighbors_index = np.argsort(dist)
         for i in range(N):
-            newrow_Xtr = self.X_tr.iloc[neighbors_index[i]]
-            newrow_Xte = self.X_te.iloc[neighbors_index[i]]
-            newrow_ytr = self.y_tr.iloc[neighbors_index[i]]
-            newrow_yte = self.y_te.iloc[neighbors_index[i]]
+            newrow_Xtr = self.X_tr.values[neighbors_index[i]]
+            newrow_Xte = self.X_te.values[neighbors_index[i]]
+            newrow_ytr = self.y_tr.values[neighbors_index[i]]
+            newrow_yte = self.y_te.values[neighbors_index[i]]
             neighbors_ytr.append(newrow_ytr)
             neighbors_yte.append(newrow_yte)
-            neighbors_Xtr=pd.concat([neighbors_Xtr, newrow_Xtr], axis=1, ignore_index=True) #Vector containing the classes of the k-nearest elements
-            neighbors_Xte=pd.concat([neighbors_Xte, newrow_Xte], axis=1, ignore_index=True)
+            neighbors_Xtr.append(newrow_Xtr) #Vector containing the classes of the k-nearest elements
+            neighbors_Xte.append(newrow_Xte)
 
-        self.X_tr = neighbors_Xtr.transpose()
-        self.X_te = neighbors_Xte.transpose()
+        self.X_tr = pd.DataFrame(neighbors_Xtr)
+        self.X_te = pd.DataFrame(neighbors_Xte)
         self.y_tr = pd.DataFrame(neighbors_ytr)
         self.y_te = pd.DataFrame(neighbors_yte)
