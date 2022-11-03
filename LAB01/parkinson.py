@@ -14,7 +14,7 @@ def NCloserMatrix(sample, N):
   dist = []
   neighbors_index = []
   neighbors =pd.DataFrame()
-  y_neighbors = pd.DataFrame()
+  y_neighbors = []
   #Create a vector with all the distances
   for i in range(len(r2.X_tr)):
     dist.append(euclidean_distance(sample, r2.X_tr.iloc[i]))
@@ -23,11 +23,12 @@ def NCloserMatrix(sample, N):
   for i in range(N):
     newrow = r2.X_tr.iloc[neighbors_index[i]]
     newrow_y = r2.y_tr.iloc[neighbors_index[i]]
-    y_neighbors = pd.concat([y_neighbors, newrow_y], axis=1, ignore_index=True)
+    y_neighbors.append(newrow_y)
     neighbors=pd.concat([neighbors, newrow], axis=1, ignore_index=True) #Vector containing the classes of the k-nearest elements
   
   r2.X_tr = neighbors.transpose()
-  r2.y_tr = y_neighbors
+  r2.y_tr = pd.DataFrame(y_neighbors)
+  pass
 
 x = pd.read_csv("C:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")
 #Analysis of dataframe
