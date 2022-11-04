@@ -88,9 +88,10 @@ r1.errorsAndCoefficients()
 #Excluding Jitter:DDP and Shimmer:DDA
 Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
 r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
-r2.localRegression(100)
-#r2.LLS()
-r2.steepestDescent()
+for i in range(Ntr):
+    r2.localRegression(100, i)
+    #r2.LLS()
+    r2.steepestDescent()
 
 r2.y_hat_te = denormalize(r2.y_hat_te, sy, my)
 r2.y_hat_tr = denormalize(r2.y_hat_tr, sy, my)

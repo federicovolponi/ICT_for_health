@@ -140,21 +140,30 @@ class regression:
         neighbors_ytr = []
         neighbors_yte = []
         
-        for i in range(self.Ntr):
-            dist.append(euclidean_distance(self.X_te.iloc[0], self.X_tr.iloc[i]))
+        for iter in range(self.Nte):
+            for i in range(self.Ntr):
+                dist.append(euclidean_distance(self.X_te.iloc[iter], self.X_tr.iloc[i]))
 
-        neighbors_index = np.argsort(dist)
-        for i in range(N):
-            newrow_Xtr = self.X_tr.values[neighbors_index[i]]
-            newrow_Xte = self.X_te.values[neighbors_index[i]]
-            newrow_ytr = self.y_tr.values[neighbors_index[i]]
-            newrow_yte = self.y_te.values[neighbors_index[i]]
-            neighbors_ytr.append(newrow_ytr)
-            neighbors_yte.append(newrow_yte)
-            neighbors_Xtr.append(newrow_Xtr)
-            neighbors_Xte.append(newrow_Xte)
+            neighbors_index = np.argsort(dist)
+            for i in range(N):
+                newrow_Xtr = self.X_tr.values[neighbors_index[i]]
+                newrow_Xte = self.X_te.values[neighbors_index[i]]
+                newrow_ytr = self.y_tr.values[neighbors_index[i]]
+                newrow_yte = self.y_te.values[neighbors_index[i]]
+                neighbors_ytr.append(newrow_ytr)
+                neighbors_yte.append(newrow_yte)
+                neighbors_Xtr.append(newrow_Xtr)
+                neighbors_Xte.append(newrow_Xte)
 
-        self.X_tr = pd.DataFrame(neighbors_Xtr)
-        self.X_te = pd.DataFrame(neighbors_Xte)
-        self.y_tr = pd.DataFrame(neighbors_ytr)
-        self.y_te = pd.DataFrame(neighbors_yte)
+            self.X_tr = pd.DataFrame(neighbors_Xtr)
+            #self.X_te = pd.DataFrame(neighbors_Xte)
+            self.y_tr = pd.DataFrame(neighbors_ytr)
+            #self.y_te = pd.DataFrame(neighbors_yte)
+            
+            y_tr = self.y_tr.values
+            X_tr = self.X_tr.values
+            m = mymin.steepestDescentAlgorithm(y_tr, X_tr)
+            m.run()
+            self.w_hat = m.sol
+            self.y_hat_te = self.X_te.iloc[iter] @ self.w_hat
+            #self.y_hat_tr = self.X_tr @ self.w_hat
