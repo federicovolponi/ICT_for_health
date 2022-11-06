@@ -8,9 +8,6 @@ def euclidean_distance(p, q):
   dist = np.sqrt(np.sum(np.square(p - q)))
   return dist
 
-def denormalize(y, sy, my):
-    return y*sy+my
-
 class regression:
     def __init__(self, X, y, Ntr, sy, my):
         self.Np = y.shape[0] 
@@ -23,7 +20,8 @@ class regression:
         self.X_te=X[Ntr:]
         self.y_tr=y[0:Ntr]
         self.y_te=y[Ntr:]
-        self.w_hat = np.zeros((self.Nf, ), dtype=float)
+        self.w_hat_LSS = np.zeros((self.Nf, ), dtype=float)
+        self.w_hat_SD = np.zeros((self.Nf, ), dtype=float)
         self.sy = sy
         self.my = my
         return
@@ -31,21 +29,17 @@ class regression:
     def LLS(self):
         m = mymin.SolveLLS(self.y_tr, self.X_tr)
         m.run()
-        self.w_hat = m.sol
-        self.y_hat_te = self.X_te @ self.w_hat
-        self.y_hat_tr = self.X_tr @ self.w_hat
+        self.w_hat_LLS = m.sol
+        self.y_hat_te_LLS = self.X_te @ self.w_hat_LLS
+        self.y_hat_tr_LLS = self.X_tr @ self.w_hat_LLS
         return
 
     def plot_LLS_vs_SD(self):
-        self.steepestDescent()
-        w_hatSD = self.w_hat
-        self.LLS()
-        w_hatLLS = self.w_hat
         regressors = list(self.X_tr.columns)
         nn = np.arange(self.Nf)
         plt.figure(figsize=(6,4))
-        plt.plot(nn,w_hatLLS,'-o', label ="LLS")
-        plt.plot(nn,w_hatSD,'-o', label = "Steepest Descent")
+        plt.plot(nn,self.w_hat_LLS,'-o', label ="LLS")
+        plt.plot(nn,self.w_hat_SD,'-o', label = "Steepest Descent")
         plt.legend()
         ticks=nn
         plt.xticks(ticks, regressors, rotation=90)
@@ -61,16 +55,20 @@ class regression:
         X_tr = self.X_tr.values
         m = mymin.steepestDescentAlgorithm(y_tr, X_tr)
         m.run(Nit = 20, eps=1e-6)
-        self.w_hat = m.sol
-        self.y_hat_te = self.X_te @ self.w_hat
-        self.y_hat_tr = self.X_tr @ self.w_hat
+        self.w_hat_SD = m.sol
+        self.y_hat_te_SD = self.X_te @ self.w_hat_SD
+        self.y_hat_tr_SD = self.X_tr @ self.w_hat_SD
         return
     
-    def plotHistrogram(self, title = "LLS-hist.png"):
+    def plotHistrogram(self, title = "LLS-Error.png", algorithm = "LLS"):
         y_tr = self.y_tr.values
-        y_hat_tr = self.y_hat_tr.values
         y_te = self.y_te.values
-        y_hat_te = self.y_hat_te.values
+        if algorithm == "LLS":
+            y_hat_tr = self.y_hat_tr_LLS.values
+            y_hat_te = self.y_hat_te_LLS.values
+        elif algorithm == "SD":
+            y_hat_tr = self.y_hat_tr_SD.values
+            y_hat_te = self.y_hat_te_SD.values
         E_tr= y_tr.reshape(len(y_tr),1) - y_hat_tr.reshape(len(y_tr),1)# training
         E_te= y_te.reshape(len(y_tr),1) - y_hat_te.reshape(len(y_tr),1) # test
         e=[E_tr.reshape(len(E_tr), ),E_te.reshape(len(E_tr), )]
@@ -80,40 +78,48 @@ class regression:
         plt.ylabel(r'$P(e$ in bin$)$')
         plt.legend()
         plt.grid()
-        plt.title('LLS-Error histograms using all the training dataset')
+        plt.title(f'{title} histograms using all the training dataset')
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
-        #plt.show()
+        plt.show()
         return
 
-    def plotRegressionLine(self, title = "LLS-yhat_vs_y.png"):
+    def plotRegressionLine(self, title = "yhat_vs_y.png"):
         plt.figure(figsize=(6,4))
-        self.LLS()
-        self.y_hat_te = denormalize(self.y_hat_te, self.sy, self.my)
-        self.y_te = denormalize(self.y_te, self.sy, self.my)
-        plt.plot(self.y_te,self.y_hat_te,'.', label = "all")
+        plt.plot(self.y_te,self.y_hat_te_LLS,'.', label = "LLS")
         v=plt.axis()
         plt.plot([v[0],v[1]],[v[0],v[1]],'r',linewidth=2)
-        self.steepestDescent()
-        self.y_hat_te = denormalize(self.y_hat_te, self.sy, self.my)
-        plt.plot(self.y_te,self.y_hat_te,'.', label = "all")
-        v=plt.axis()
-        plt.plot([v[0],v[1]],[v[0],v[1]],'g',linewidth=2)
+        plt.plot(self.y_te,self.y_hat_te_SD,'.', label = "Steepest descent")
         plt.legend()
         plt.xlabel(r'$y$')
         plt.axis('square')
         plt.ylabel(r'$\^y$')
         plt.grid()
-        plt.title('LLS-test')
+        plt.title('Regressione line')
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
-        plt.show()
+        #plt.show()
 
-    def errorsAndCoefficients(self):
+    def denormalize(self, sy, my):
+         self.y_hat_te_LLS = self.y_hat_te_LLS * sy + my
+         self.y_hat_te_SD = self.y_hat_te_SD * sy + my
+         self.y_hat_tr_SD = self.y_hat_tr_SD * sy + my
+         self.y_hat_tr_LLS = self.y_hat_tr_LLS * sy + my
+         self.y_te = self.y_te * sy + my
+         self.y_tr = self.y_tr * sy + my
+
+    def errorsAndCoefficients(self, algorithm = "LLS"):
         y_tr = self.y_tr.values
-        y_hat_tr = self.y_hat_tr.values
         y_te = self.y_te.values
-        y_hat_te = self.y_hat_te.values
+        if algorithm == "LLS":
+            y_hat_tr = self.y_hat_tr_LLS.values
+            y_hat_te = self.y_hat_te_LLS.values
+            print("LLS:\n")
+        elif algorithm == "SD":
+            y_hat_tr = self.y_hat_tr_SD.values
+            y_hat_te = self.y_hat_te_SD.values
+            print("Steepest descent: \n")
+        
         E_tr= y_tr.reshape(len(y_tr),1) - y_hat_tr.reshape(len(y_tr),1)# training
         E_te= y_te.reshape(len(y_tr),1) - y_hat_te.reshape(len(y_tr),1) # test
         E_tr_max=E_tr.max()
