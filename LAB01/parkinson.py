@@ -1,3 +1,4 @@
+
 import sub.regression as myreg
 import numpy as np
 import matplotlib.pyplot as plt
@@ -40,17 +41,17 @@ plt.yticks(np.arange(len(features)), features, rotation = 0)
 plt.colorbar()
 plt.title("Correlation coefficients of the features")
 plt.tight_layout()
-plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeff.png")
-plt.show()
-plt.figure()
+plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeff_features.png")
+#plt.show()
 
+plt.figure()
 c.total_UPDRS.plot()
 plt.grid()
 plt.xticks(np.arange(len(features)), features, rotation = 90)
-plt.title("corr. coeff among total UPDRS and the other features")
+plt.title("Correlation coefficient among total UPDRS and the other features")
 plt.tight_layout()
 plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeffTotal.png")
-plt.show()
+#plt.show()
 
 #Shuffle the data
 Xsh = X.sample(frac=1, replace=False, random_state=309709, axis=0, ignore_index=True)
@@ -88,10 +89,9 @@ r1.errorsAndCoefficients()
 #Excluding Jitter:DDP and Shimmer:DDA
 Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
 r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
-for i in range(Ntr):
-    r2.localRegression(100, i)
-    #r2.LLS()
-    r2.steepestDescent()
+
+r2.plot_LLS_vs_SD()
+#r2.localRegression(200)
 
 r2.y_hat_te = denormalize(r2.y_hat_te, sy, my)
 r2.y_hat_tr = denormalize(r2.y_hat_tr, sy, my)

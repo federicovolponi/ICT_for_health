@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+np.random.seed(309709)
 
 class SolveMinProbl:
     """
@@ -103,13 +104,12 @@ class SolveGrad(SolveMinProbl):
 
 class steepestDescentAlgorithm(SolveMinProbl):
 
-    def run(self, Nit = 100):
+    def run(self, Nit = 100, eps = 1e-8):
         self.err = np.zeros((Nit, 2), dtype=float)
         grad = np.zeros((self.Nf, 1), dtype=float)
         A = self.matr
         y = self.vect
         self.Nit = Nit
-        eps = 1e-8
         hess = 2 * A.T @ A
         w = np.random.rand(self.Nf, 1)
         for i in range(Nit):
@@ -120,7 +120,7 @@ class steepestDescentAlgorithm(SolveMinProbl):
             self.err[i, 0] = i
             self.err[i, 1] = np.linalg.norm(A@w - y)**2
 
-            if np.linalg.norm(w - wi) < eps:    # stopping condition
+            if np.linalg.norm(grad) < eps:    # stopping condition
                 break
             
         self.sol = w
