@@ -8,8 +8,11 @@ def euclidean_distance(p, q):
   dist = np.sqrt(np.sum(np.square(p - q)))
   return dist
 
+def denormalize(y, sy, my):
+    return y*sy+my
+
 class regression:
-    def __init__(self, X, y, Ntr):
+    def __init__(self, X, y, Ntr, sy, my):
         self.Np = y.shape[0] 
         self.Ntr = Ntr
         self.Nte = self.Np - self.Ntr
@@ -21,6 +24,8 @@ class regression:
         self.y_tr=y[0:Ntr]
         self.y_te=y[Ntr:]
         self.w_hat = np.zeros((self.Nf, ), dtype=float)
+        self.sy = sy
+        self.my = my
         return
 
     def LLS(self):
@@ -49,7 +54,7 @@ class regression:
         plt.grid()
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\LLSvsSD_w_hat_weights')
-        plt.show()
+        #plt.show()
 
     def steepestDescent(self):
         y_tr = self.y_tr.values
@@ -78,15 +83,23 @@ class regression:
         plt.title('LLS-Error histograms using all the training dataset')
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
-        plt.show()
+        #plt.show()
         return
 
     def plotRegressionLine(self, title = "LLS-yhat_vs_y.png"):
         plt.figure(figsize=(6,4))
+        self.LLS()
+        self.y_hat_te = denormalize(self.y_hat_te, self.sy, self.my)
+        self.y_te = denormalize(self.y_te, self.sy, self.my)
         plt.plot(self.y_te,self.y_hat_te,'.', label = "all")
-        plt.legend()
         v=plt.axis()
         plt.plot([v[0],v[1]],[v[0],v[1]],'r',linewidth=2)
+        self.steepestDescent()
+        self.y_hat_te = denormalize(self.y_hat_te, self.sy, self.my)
+        plt.plot(self.y_te,self.y_hat_te,'.', label = "all")
+        v=plt.axis()
+        plt.plot([v[0],v[1]],[v[0],v[1]],'g',linewidth=2)
+        plt.legend()
         plt.xlabel(r'$y$')
         plt.axis('square')
         plt.ylabel(r'$\^y$')

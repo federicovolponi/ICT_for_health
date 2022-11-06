@@ -4,9 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def denormalize(y, sy, my):
-    return y*sy+my
-
 x = pd.read_csv("C:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")
 
 #Analysis of dataframe
@@ -72,9 +69,9 @@ Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#'],axis=1) #regressors only
 
 #LLS regression
 #All the features
-'''
+""" 
 r1 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
-#r1.LLS("LLS-what-all.png")
+r1.plot_LLS_vs_SD()
 #r1.steepestDescent()
 
 r1.y_hat_te = denormalize(r1.y_hat_te, sy, my)
@@ -85,19 +82,15 @@ r1.y_te = denormalize(r1.y_te, sy, my)
 r1.plotHistrogram("LLS-hist_all.png")
 r1.plotRegressionLine("y_hat_vs_y-all.png")
 r1.errorsAndCoefficients()
-'''
+ """
 #Excluding Jitter:DDP and Shimmer:DDA
 Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
-r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
+r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr, sy, my)
 
-r2.plot_LLS_vs_SD()
+#r2.plot_LLS_vs_SD()
 #r2.localRegression(200)
 
-r2.y_hat_te = denormalize(r2.y_hat_te, sy, my)
-r2.y_hat_tr = denormalize(r2.y_hat_tr, sy, my)
-r2.y_tr = denormalize(r2.y_tr, sy, my)
-r2.y_te = denormalize(r2.y_te, sy, my)
 
-r2.plotHistrogram("steepest-hist.png")
 r2.plotRegressionLine()
-r2.errorsAndCoefficients()
+pass
+#r2.plotHistrogram("steepest-hist.png")
