@@ -87,11 +87,15 @@ class regression:
         plt.show()
         return
 
-    def plotRegressionLine(self, title = "yhat_vs_y.png"):
+    def plotRegressionLine(self, title = "yhat_vs_y.png", algorithm = "LLS"):
+        if algorithm == "LLS":
+            y_hat_te = self.y_hat_te_LLS.values
+        elif algorithm == "SD":
+            y_hat_te = self.y_hat_te_SD.values
+        elif algorithm == "LR":
+            y_hat_te = self.y_hat_te_LR.values
         plt.figure(figsize=(6,4))
-        plt.plot(self.y_te,self.y_hat_te_LLS,'.', label = "LLS")
-        plt.plot(self.y_te,self.y_hat_te_SD,'.', label = "Steepest descent")
-        plt.plot(self.y_te,self.y_hat_te_LR,'.', label = "Local regression")
+        plt.plot(self.y_te, y_hat_te,'.', label = algorithm)
         v=plt.axis()
         plt.plot([v[0],v[1]],[v[0],v[1]],'r',linewidth=2)
         plt.legend()
@@ -99,7 +103,7 @@ class regression:
         plt.axis('square')
         plt.ylabel(r'$\^y$')
         plt.grid()
-        plt.title('Regressione line')
+        plt.title(f'Regressione line for {title}')
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
         #plt.show()

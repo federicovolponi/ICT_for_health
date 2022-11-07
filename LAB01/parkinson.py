@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+n_different_seed = 20
 x = pd.read_csv("C:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")
 
 #Analysis of dataframe
@@ -27,7 +28,8 @@ print("\nThe features of the dataset are ", len(features))
 print("\n", features)
 print("\n\n")
 Np, Nc = X.shape
-
+Ntr = int(Np*0.5)
+Nte = Np - Ntr
 # Measure and show the covariance matrix
 Xnorm = (X - X.mean())/X.std() #normalize dataset
 c = Xnorm.cov() #measure the covariance
@@ -51,8 +53,61 @@ plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeffTotal.png")
 #plt.show()
 
 #Shuffle the data
-Xsh = X.sample(frac=1, replace=False, random_state=309709, axis=0, ignore_index=True)
+y_hat_tr_LLS = np.empty([Ntr,n_different_seed])
+y_hat_te_LLS = np.empty([Nte,n_different_seed])
+y_hat_tr_SD = np.empty([Ntr,n_different_seed])
+y_hat_te_SD = np.empty([Nte,n_different_seed])
+y_hat_tr_LR = np.empty([Ntr,n_different_seed])
+y_hat_te_LR = np.empty([Nte,n_different_seed])
+for i in range(n_different_seed):
+    seed = np.random.seed()
+    Xsh = X.sample(frac=1, replace=False, random_state=seed, axis=0, ignore_index=True)
 
+    # Generate training and test matrices
+    
+    X_tr = Xsh[0:Ntr]   #dataframe of the training data
+    mm = X_tr.mean()
+    ss = X_tr.std()
+    my = mm['total_UPDRS']  #mean of total_UPDRS
+    sy = ss['total_UPDRS']  #st. dev. of total UPDRS
+
+    # Generate the normalized training and test datasets, remove unwanted regressors
+    Xsh_norm=(Xsh-mm)/ss  #normalized data
+    ysh_norm=Xsh_norm['total_UPDRS']  #regressand only
+    Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#'],axis=1) #regressors only
+
+    #LLS regression
+    #All the features
+    #Excluding Jitter:DDP and Shimmer:DDA
+    Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
+    r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr, sy, my)
+    #r2.localRegression(100)
+    r2.LLS()
+    y_hat_te_LLS[i] = r2.y_hat_te_LLS.values.T
+    y_hat_tr_LLS.append(r2.y_hat_tr_LLS)
+    r2.steepestDescent()
+    y_hat_te_SD.append(r2.y_hat_te_SD)
+    y_hat_tr_SD.append(r2.y_hat_tr_SD)
+
+
+
+
+r2.plot_LLS_vs_SD()
+r2.denormalize(sy, my)
+
+r2.plotRegressionLine(title="regressionline_LLS", algorithm="LLS")
+r2.plotRegressionLine(title="regressionline_SD", algorithm="SD")
+r2.plotRegressionLine(title="regressionline_LR", algorithm="LR")
+r2.plotHistrogram(title="LLS-Error", algorithm="LLS")
+r2.plotHistrogram(title="SD-Error", algorithm="SD")
+r2.plotHistrogram(title="LR-Error", algorithm="SD")
+r2.errorsAndCoefficients(algorithm="LLS")
+r2.errorsAndCoefficients(algorithm="SD")
+r2.errorsAndCoefficients(algorithm="LR")
+
+
+
+Xsh = X.sample(frac=1, replace=False, random_state=309709, axis=0, ignore_index=True)
 # Generate training and test matrices
 Ntr = int(Np*0.5)
 Nte = Np - Ntr
@@ -69,20 +124,6 @@ Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#'],axis=1) #regressors only
 
 #LLS regression
 #All the features
-""" 
-r1 = myreg.regression(Xsh_norm, ysh_norm, Ntr)
-r1.plot_LLS_vs_SD()
-#r1.steepestDescent()
-
-r1.y_hat_te = denormalize(r1.y_hat_te, sy, my)
-r1.y_hat_tr = denormalize(r1.y_hat_tr, sy, my)
-r1.y_tr = denormalize(r1.y_tr, sy, my)
-r1.y_te = denormalize(r1.y_te, sy, my)
-
-r1.plotHistrogram("LLS-hist_all.png")
-r1.plotRegressionLine("y_hat_vs_y-all.png")
-r1.errorsAndCoefficients()
- """
 #Excluding Jitter:DDP and Shimmer:DDA
 Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
 r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr, sy, my)
@@ -92,7 +133,9 @@ r2.steepestDescent()
 r2.plot_LLS_vs_SD()
 r2.denormalize(sy, my)
 
-r2.plotRegressionLine()
+r2.plotRegressionLine(title="regressionline_LLS", algorithm="LLS")
+r2.plotRegressionLine(title="regressionline_SD", algorithm="SD")
+r2.plotRegressionLine(title="regressionline_LR", algorithm="LR")
 r2.plotHistrogram(title="LLS-Error", algorithm="LLS")
 r2.plotHistrogram(title="SD-Error", algorithm="SD")
 r2.plotHistrogram(title="LR-Error", algorithm="SD")
