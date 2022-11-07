@@ -1,4 +1,4 @@
-
+#%%
 import sub.regression as myreg
 import numpy as np
 import matplotlib.pyplot as plt
@@ -86,14 +86,17 @@ r1.errorsAndCoefficients()
 #Excluding Jitter:DDP and Shimmer:DDA
 Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
 r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr, sy, my)
+r2.localRegression(100)
 r2.LLS()
 r2.steepestDescent()
 r2.plot_LLS_vs_SD()
-#r2.localRegression(200)
 r2.denormalize(sy, my)
 
 r2.plotRegressionLine()
 r2.plotHistrogram(title="LLS-Error", algorithm="LLS")
 r2.plotHistrogram(title="SD-Error", algorithm="SD")
+r2.plotHistrogram(title="LR-Error", algorithm="SD")
 r2.errorsAndCoefficients(algorithm="LLS")
 r2.errorsAndCoefficients(algorithm="SD")
+r2.errorsAndCoefficients(algorithm="LR")
+# %%

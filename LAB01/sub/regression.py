@@ -60,7 +60,7 @@ class regression:
         self.y_hat_tr_SD = self.X_tr @ self.w_hat_SD
         return
     
-    def plotHistrogram(self, title = "LLS-Error.png", algorithm = "LLS"):
+    def plotHistrogram(self, title = "LLS-Error", algorithm = "LLS"):
         y_tr = self.y_tr.values
         y_te = self.y_te.values
         if algorithm == "LLS":
@@ -69,6 +69,9 @@ class regression:
         elif algorithm == "SD":
             y_hat_tr = self.y_hat_tr_SD.values
             y_hat_te = self.y_hat_te_SD.values
+        elif algorithm == "LR":
+            y_hat_tr = self.y_hat_tr_LR.values
+            y_hat_te = self.y_hat_te_LR.values
         E_tr= y_tr.reshape(len(y_tr),1) - y_hat_tr.reshape(len(y_tr),1)# training
         E_te= y_te.reshape(len(y_tr),1) - y_hat_te.reshape(len(y_tr),1) # test
         e=[E_tr.reshape(len(E_tr), ),E_te.reshape(len(E_tr), )]
@@ -80,16 +83,17 @@ class regression:
         plt.grid()
         plt.title(f'{title} histograms using all the training dataset')
         plt.tight_layout()
-        plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
+        plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}.png')
         plt.show()
         return
 
     def plotRegressionLine(self, title = "yhat_vs_y.png"):
         plt.figure(figsize=(6,4))
         plt.plot(self.y_te,self.y_hat_te_LLS,'.', label = "LLS")
+        plt.plot(self.y_te,self.y_hat_te_SD,'.', label = "Steepest descent")
+        plt.plot(self.y_te,self.y_hat_te_LR,'.', label = "Local regression")
         v=plt.axis()
         plt.plot([v[0],v[1]],[v[0],v[1]],'r',linewidth=2)
-        plt.plot(self.y_te,self.y_hat_te_SD,'.', label = "Steepest descent")
         plt.legend()
         plt.xlabel(r'$y$')
         plt.axis('square')
@@ -102,9 +106,11 @@ class regression:
 
     def denormalize(self, sy, my):
          self.y_hat_te_LLS = self.y_hat_te_LLS * sy + my
+         self.y_hat_tr_LLS = self.y_hat_tr_LLS * sy + my
          self.y_hat_te_SD = self.y_hat_te_SD * sy + my
          self.y_hat_tr_SD = self.y_hat_tr_SD * sy + my
-         self.y_hat_tr_LLS = self.y_hat_tr_LLS * sy + my
+         self.y_hat_te_LR = self.y_hat_te_LR * sy + my
+         self.y_hat_tr_LR = self.y_hat_tr_LR * sy + my
          self.y_te = self.y_te * sy + my
          self.y_tr = self.y_tr * sy + my
 
@@ -119,6 +125,10 @@ class regression:
             y_hat_tr = self.y_hat_tr_SD.values
             y_hat_te = self.y_hat_te_SD.values
             print("Steepest descent: \n")
+        elif algorithm == "LR":
+            y_hat_tr = self.y_hat_tr_LR.values
+            y_hat_te = self.y_hat_te_LR.values
+            print("Local regression: \n")
         
         E_tr= y_tr.reshape(len(y_tr),1) - y_hat_tr.reshape(len(y_tr),1)# training
         E_te= y_te.reshape(len(y_tr),1) - y_hat_te.reshape(len(y_tr),1) # test
@@ -188,5 +198,5 @@ class regression:
             y_hat = self.X_tr.iloc[iter] @ w_hat_tr
             y_hat_tr[iter] = y_hat
 
-        self.y_hat_te = pd.DataFrame(y_hat_te)
-        self.y_hat_tr = pd.DataFrame(y_hat_tr)    
+        self.y_hat_te_LR = pd.DataFrame(y_hat_te)
+        self.y_hat_tr_LR = pd.DataFrame(y_hat_tr)    
