@@ -108,58 +108,66 @@ class regression:
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
         #plt.show()
 
-    def denormalize(self, sy, my):
-         self.y_hat_te_LLS = self.y_hat_te_LLS * sy + my
-         self.y_hat_tr_LLS = self.y_hat_tr_LLS * sy + my
-         self.y_hat_te_SD = self.y_hat_te_SD * sy + my
-         self.y_hat_tr_SD = self.y_hat_tr_SD * sy + my
-         self.y_hat_te_LR = self.y_hat_te_LR * sy + my
-         self.y_hat_tr_LR = self.y_hat_tr_LR * sy + my
-         self.y_te = self.y_te * sy + my
-         self.y_tr = self.y_tr * sy + my
+    def denormalize(self, sy, my, algorithm = "Default"):
+        if algorithm == "LLS":
+            self.y_hat_te_LLS = self.y_hat_te_LLS * sy + my
+            self.y_hat_tr_LLS = self.y_hat_tr_LLS * sy + my
+        elif algorithm == "SD":
+            self.y_hat_te_SD = self.y_hat_te_SD * sy + my
+            self.y_hat_tr_SD = self.y_hat_tr_SD * sy + my
+        elif algorithm == "LR":
+            self.y_hat_te_LR = self.y_hat_te_LR * sy + my
+            self.y_hat_tr_LR = self.y_hat_tr_LR * sy + my
+        else:
+            self.y_te = self.y_te * sy + my
+            self.y_tr = self.y_tr * sy + my
 
-    def errorsAndCoefficients(self, algorithm = "LLS"):
+    def errorsAndCoefficients(self, algorithm = "LLS", toPrint = False):
         y_tr = self.y_tr
         y_te = self.y_te
         if algorithm == "LLS":
             y_hat_tr = self.y_hat_tr_LLS
             y_hat_te = self.y_hat_te_LLS
-            print("LLS:\n")
+            if toPrint:
+                print("LLS:\n")
         elif algorithm == "SD":
             y_hat_tr = self.y_hat_tr_SD
             y_hat_te = self.y_hat_te_SD
-            print("Steepest descent: \n")
+            if toPrint:
+                print("Steepest descent: \n")
         elif algorithm == "LR":
             y_hat_tr = self.y_hat_tr_LR
             y_hat_te = self.y_hat_te_LR
-            print("Local regression: \n")
+            if toPrint:
+                print("Local regression: \n")
         
-        E_tr= y_tr.reshape(len(y_tr),1) - y_hat_tr.reshape(len(y_tr),1)# training
-        E_te= y_te.reshape(len(y_tr),1) - y_hat_te.reshape(len(y_tr),1) # test
-        E_tr_max=E_tr.max()
-        E_tr_min=E_tr.min()
-        E_tr_mu=E_tr.mean()
-        E_tr_sig=E_tr.std()
-        E_tr_MSE=np.mean(E_tr**2)
-        R2_tr=1-E_tr_MSE/(np.std(y_tr)**2)
-        c_tr=np.mean((y_tr.reshape(len(y_tr),1)-y_tr.reshape(len(y_tr),1).mean())*(y_hat_tr.reshape(len(y_tr),1)-y_hat_tr.reshape(len(y_tr),1).mean()))/(y_tr.reshape(len(y_tr),1).std()*y_hat_tr.reshape(len(y_tr),1).std())
-        E_te_max=E_te.max()
-        E_te_min=E_te.min()
-        E_te_mu=E_te.mean()
-        E_te_sig=E_te.std()
-        E_te_MSE=np.mean(E_te**2)
-        R2_te=1-E_te_MSE/(np.std(y_te)**2)
-        c_te=np.mean((y_te.reshape(len(y_tr),1)- y_te.reshape(len(y_tr),1).mean())*(y_hat_te.reshape(len(y_tr),1)-y_hat_te.reshape(len(y_tr),1).mean()))/(y_te.reshape(len(y_tr),1).std()*y_hat_te.reshape(len(y_tr),1).std())
+        self.E_tr= y_tr.reshape(len(y_tr),1) - y_hat_tr.reshape(len(y_tr),1)# training
+        self.E_te= y_te.reshape(len(y_tr),1) - y_hat_te.reshape(len(y_tr),1) # test
+        self.E_tr_max=self.E_tr.max()
+        self.E_tr_min=self.E_tr.min()
+        self.E_tr_mu=self.E_tr.mean()
+        self.E_tr_sig=self.E_tr.std()
+        self.E_tr_MSE=np.mean(self.E_tr**2)
+        self.R2_tr=1-self.E_tr_MSE/(np.std(y_tr)**2)
+        self.c_tr=np.mean((y_tr.reshape(len(y_tr),1)-y_tr.reshape(len(y_tr),1).mean())*(y_hat_tr.reshape(len(y_tr),1)-y_hat_tr.reshape(len(y_tr),1).mean()))/(y_tr.reshape(len(y_tr),1).std()*y_hat_tr.reshape(len(y_tr),1).std())
+        self.E_te_max=self.E_te.max()
+        self.E_te_min=self.E_te.min()
+        self.E_te_mu=self.E_te.mean()
+        self.E_te_sig=self.E_te.std()
+        self.E_te_MSE=np.mean(self.E_te**2)
+        self.R2_te=1-self.E_te_MSE/(np.std(y_te)**2)
+        self.c_te=np.mean((y_te.reshape(len(y_tr),1)- y_te.reshape(len(y_tr),1).mean())*(y_hat_te.reshape(len(y_tr),1)-y_hat_te.reshape(len(y_tr),1).mean()))/(y_te.reshape(len(y_tr),1).std()*y_hat_te.reshape(len(y_tr),1).std())
 
-        cols=['min','max','mean','std','MSE','R^2','corr_coeff']
-        rows=['Training','test']
-        p=np.array([
-            [E_tr_min,E_tr_max,E_tr_mu,E_tr_sig,E_tr_MSE,R2_tr,c_tr],
-            [E_te_min,E_te_max,E_te_mu,E_te_sig,E_te_MSE,R2_te,c_te],
-                    ])
+        if toPrint:
+            cols=['min','max','mean','std','MSE','R^2','corr_coeff']
+            rows=['Training','test']
+            p=np.array([
+                [self.E_tr_min,self.E_tr_max,self.E_tr_mu,self.E_tr_sig,self.E_tr_MSE,self.R2_tr,self.c_tr],
+                [self.E_te_min,self.E_te_max,self.E_te_mu,self.E_te_sig,self.E_te_MSE,self.R2_te,self.c_te],
+                        ])
 
-        results=pd.DataFrame(p,columns=cols,index=rows)
-        print(results, "\n\n")
+            results=pd.DataFrame(p,columns=cols,index=rows)
+            print(results, "\n\n")
 
     def localRegression(self, N):
         y_hat_te = np.zeros([self.Nte, 1])
