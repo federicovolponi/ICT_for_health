@@ -109,18 +109,18 @@ class regression:
         #plt.show()
 
     def denormalize(self, algorithm = "Default"):
-        if algorithm == "LLS":
-            self.y_hat_te_LLS = self.y_hat_te_LLS * self.sy + self.my
-            self.y_hat_tr_LLS = self.y_hat_tr_LLS * self.sy + self.my
-        elif algorithm == "SD":
-            self.y_hat_te_SD = self.y_hat_te_SD * self.sy + self.my
-            self.y_hat_tr_SD = self.y_hat_tr_SD * self.sy + self.my
-        elif algorithm == "LR":
-            self.y_hat_te_LR = self.y_hat_te_LR * self.sy + self.my
-            self.y_hat_tr_LR = self.y_hat_tr_LR * self.sy + self.my
-        else:
-            self.y_te = self.y_te * self.sy + self.my
-            self.y_tr = self.y_tr * self.sy + self.my
+    
+        self.y_hat_te_LLS = self.y_hat_te_LLS * self.sy + self.my
+        self.y_hat_tr_LLS = self.y_hat_tr_LLS * self.sy + self.my
+    
+        self.y_hat_te_SD = self.y_hat_te_SD * self.sy + self.my
+        self.y_hat_tr_SD = self.y_hat_tr_SD * self.sy + self.my
+    
+        self.y_hat_te_LR = self.y_hat_te_LR * self.sy + self.my
+        self.y_hat_tr_LR = self.y_hat_tr_LR * self.sy + self.my
+    
+        self.y_te = self.y_te * self.sy + self.my
+        self.y_tr = self.y_tr * self.sy + self.my
 
     def errorsAndCoefficients(self, algorithm = "LLS", toPrint = False):
         y_tr = self.y_tr
@@ -157,17 +157,19 @@ class regression:
         self.E_te_MSE=np.mean(self.E_te**2)
         self.R2_te=1-self.E_te_MSE/(np.std(y_te)**2)
         self.c_te=np.mean((y_te.reshape(len(y_tr),1)- y_te.reshape(len(y_tr),1).mean())*(y_hat_te.reshape(len(y_tr),1)-y_hat_te.reshape(len(y_tr),1).mean()))/(y_te.reshape(len(y_tr),1).std()*y_hat_te.reshape(len(y_tr),1).std())
+        
+        
+        cols=['min','max','mean','std','MSE','R^2','corr_coeff']
+        rows=['Training','test']
+        p=np.array([
+            [self.E_tr_min,self.E_tr_max,self.E_tr_mu,self.E_tr_sig,self.E_tr_MSE,self.R2_tr,self.c_tr],
+            [self.E_te_min,self.E_te_max,self.E_te_mu,self.E_te_sig,self.E_te_MSE,self.R2_te,self.c_te],
+                    ])
 
+        results=pd.DataFrame(p,columns=cols,index=rows)
         if toPrint:
-            cols=['min','max','mean','std','MSE','R^2','corr_coeff']
-            rows=['Training','test']
-            p=np.array([
-                [self.E_tr_min,self.E_tr_max,self.E_tr_mu,self.E_tr_sig,self.E_tr_MSE,self.R2_tr,self.c_tr],
-                [self.E_te_min,self.E_te_max,self.E_te_mu,self.E_te_sig,self.E_te_MSE,self.R2_te,self.c_te],
-                        ])
-
-            results=pd.DataFrame(p,columns=cols,index=rows)
             print(results, "\n\n")
+        return results
 
     def localRegression(self, N):
         y_hat_te = np.zeros([self.Nte, 1])
