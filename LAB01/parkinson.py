@@ -56,7 +56,7 @@ plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeffTotal.png")
 #plt.show()
 
 #Shuffle the data
-E_tr_max = []
+""" E_tr_max = []
 E_tr_min = []
 E_tr_mu = []
 E_tr_sig = []
@@ -70,8 +70,8 @@ E_te_sig = []
 E_te_MSE = []
 R2_te = []
 c_te = []
-
-""" for i in range(n_different_seed):
+algorithm = "LR"
+for i in range(n_different_seed):
     seed = np.random.seed()
     Xsh = X.sample(frac=1, replace=False, random_state=seed, axis=0, ignore_index=True)
 
@@ -92,15 +92,25 @@ c_te = []
     #Excluding Jitter:DDP and Shimmer:DDA
     Xsh_norm=Xsh_norm.drop(['Jitter:DDP', 'Shimmer:DDA'],axis=1)
     r2 = myreg.regression(Xsh_norm, ysh_norm, Ntr, sy, my)
-    #r2.localRegression(100)
-    r2.LLS()
-    r2.steepestDescent()
-    #r2.localRegression(100)
+    if algorithm == "LLS":
+        r2.LLS()
+        r2.denormalize()
+        r2.denormalize(algorithm="LLS")
+        r2.errorsAndCoefficients(algorithm="LLS")
     
-    #r2.errorsAndCoefficients(algorithm="LLS")
-    r2.errorsAndCoefficients(algorithm="SD")
-    #r2.errorsAndCoefficients(algorithm="LR")
-    r2.denormalize(sy, my, algorithm="SD")
+    if algorithm == "SD":
+        r2.steepestDescent()
+        r2.denormalize()
+        r2.denormalize(algorithm="SD")
+        r2.errorsAndCoefficients(algorithm="SD")
+        
+    
+    if algorithm == "LR":
+        r2.localRegression(100)
+        r2.denormalize()
+        r2.denormalize(algorithm="LR")
+        r2.errorsAndCoefficients(algorithm="LR")
+    
     E_tr_max.append(r2.E_tr_max)
     E_tr_min.append(r2.E_tr_min)
     E_tr_mu.append(r2.E_tr_mu)
@@ -125,8 +135,8 @@ p=np.array([
 
 results=pd.DataFrame(p,columns=cols,index=rows)
 print(results, "\n\n")
-
  """
+
 
 
 Xsh = X.sample(frac=1, replace=False, random_state=309709, axis=0, ignore_index=True)
@@ -153,10 +163,10 @@ r2.localRegression(100)
 r2.LLS()
 r2.steepestDescent()
 r2.plot_LLS_vs_SD()
-r2.denormalize(sy, my)
-r2.denormalize(sy, my, algorithm="LLS")
-r2.denormalize(sy, my, algorithm="SD")
-r2.denormalize(sy, my, algorithm="LR")
+r2.denormalize()
+r2.denormalize(algorithm="LLS")
+r2.denormalize(algorithm="SD")
+r2.denormalize(algorithm="LR")
 r2.plotRegressionLine(title="regressionline_LLS", algorithm="LLS")
 r2.plotRegressionLine(title="regressionline_SD", algorithm="SD")
 r2.plotRegressionLine(title="regressionline_LR", algorithm="LR")
@@ -167,3 +177,4 @@ r2.errorsAndCoefficients(algorithm="LLS", toPrint=True)
 r2.errorsAndCoefficients(algorithm="SD", toPrint=True)
 r2.errorsAndCoefficients(algorithm="LR", toPrint=True)
 
+ 

@@ -108,19 +108,19 @@ class regression:
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
         #plt.show()
 
-    def denormalize(self, sy, my, algorithm = "Default"):
+    def denormalize(self, algorithm = "Default"):
         if algorithm == "LLS":
-            self.y_hat_te_LLS = self.y_hat_te_LLS * sy + my
-            self.y_hat_tr_LLS = self.y_hat_tr_LLS * sy + my
+            self.y_hat_te_LLS = self.y_hat_te_LLS * self.sy + self.my
+            self.y_hat_tr_LLS = self.y_hat_tr_LLS * self.sy + self.my
         elif algorithm == "SD":
-            self.y_hat_te_SD = self.y_hat_te_SD * sy + my
-            self.y_hat_tr_SD = self.y_hat_tr_SD * sy + my
+            self.y_hat_te_SD = self.y_hat_te_SD * self.sy + self.my
+            self.y_hat_tr_SD = self.y_hat_tr_SD * self.sy + self.my
         elif algorithm == "LR":
-            self.y_hat_te_LR = self.y_hat_te_LR * sy + my
-            self.y_hat_tr_LR = self.y_hat_tr_LR * sy + my
+            self.y_hat_te_LR = self.y_hat_te_LR * self.sy + self.my
+            self.y_hat_tr_LR = self.y_hat_tr_LR * self.sy + self.my
         else:
-            self.y_te = self.y_te * sy + my
-            self.y_tr = self.y_tr * sy + my
+            self.y_te = self.y_te * self.sy + self.my
+            self.y_tr = self.y_tr * self.sy + self.my
 
     def errorsAndCoefficients(self, algorithm = "LLS", toPrint = False):
         y_tr = self.y_tr
