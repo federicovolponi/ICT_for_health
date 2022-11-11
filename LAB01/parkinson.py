@@ -167,7 +167,3 @@ if __name__ == "__main__":
     print(results_SD)
     print("\nLLR error table - averaged results on 20 seeds")
     print(results_LR)
-
-
-
-    
