@@ -4,11 +4,24 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sub.minimization as mymin
 
+# Function to evaluate the euclidean distance between two vectors
 def euclidean_distance(p, q):
   dist = np.sqrt(np.sum(np.square(p - q)))
   return dist
 
-class regression:
+class LinearRegression:
+    """
+    # Class to perform linear regression:
+    ### Methods:
+    - LLS(): finds y_hat for the test and training set using the LLS method
+    - SteepestDescent(): finds y_hat for the test and training set using the Steepest descent algorithm
+    - localRegression(N): finds y_hat for the test and training set implementing local regression on the N values nearer to a test sample
+    - plot_LLS_vs_SD(): plots the two weight vectors found by the LLS method and the SD algorithm
+    - plotHistrogram(algorithm): plot the histogram of the errors between y_hat and y, for both training and test set, for a given algorithm
+    - plotRegressionLine(algorithm): plot the regression line for a given algorithm
+    - denormalize(): simple method to denormalize if necessary
+    - errorsAndCoefficients(): analysis of the errors and coefficients for both the training and test set
+    """
     def __init__(self, X, y, Ntr, sy, my):
         self.Np = y.shape[0] 
         self.Ntr = Ntr
@@ -34,6 +47,58 @@ class regression:
         self.y_hat_tr_LLS = self.X_tr.values @ self.w_hat_LLS
         return
 
+    def steepestDescent(self):
+        y_tr = self.y_tr
+        X_tr = self.X_tr.values
+        m = mymin.steepestDescentAlgorithm(y_tr, X_tr)
+        m.run(Nit = 20, eps=1e-6)
+        self.w_hat_SD = m.sol
+        self.y_hat_te_SD = self.X_te.values @ self.w_hat_SD
+        self.y_hat_tr_SD = self.X_tr.values @ self.w_hat_SD
+        return
+
+    def localRegression(self, N):
+        y_hat_te = np.zeros([self.Nte, 1])
+        y_hat_tr = np.zeros([self.Ntr, 1])
+        X_te = self.X_te.values
+        X_tr = self.X_tr.values
+        for iter in range(self.Nte):
+            dist_te = []
+            dist_tr = []
+            for i in range(self.Ntr):
+                dist_te.append(euclidean_distance(X_te[iter, :], X_tr[i, :]))
+                dist_tr.append(euclidean_distance(X_tr[iter, :], X_tr[i, :]))
+            
+            neighbors_index_te = np.argsort(dist_te)
+            neighbors_index_tr = np.argsort(dist_tr)
+            neighbors_Xtr_te = np.zeros([N,self.Nf]) 
+            neighbors_ytr_te = np.zeros([N, 1])
+            neighbors_Xtr_tr = np.zeros([N,self.Nf])
+            neighbors_ytr_tr = np.zeros([N, 1])
+            for i in range(N):
+                
+                neighbors_Xtr_te[i] = X_tr[neighbors_index_te[i]]
+                neighbors_ytr_te[i] = self.y_tr[neighbors_index_te[i]]
+                 
+                neighbors_Xtr_tr[i] = X_tr[neighbors_index_tr[i]]
+                neighbors_ytr_tr[i] = self.y_tr[neighbors_index_tr[i]]
+
+
+            m1 = mymin.steepestDescentAlgorithm(neighbors_ytr_te, neighbors_Xtr_te)
+            m1.run()
+            w_hat_te = m1.sol
+            y_hat = X_te[iter, :] @ w_hat_te
+            y_hat_te[iter] = y_hat
+              
+            m2 = mymin.steepestDescentAlgorithm(neighbors_ytr_tr, neighbors_Xtr_tr)
+            m2.run()
+            w_hat_tr = m2.sol
+            y_hat = X_tr[iter, :] @ w_hat_tr
+            y_hat_tr[iter] = y_hat
+
+        self.y_hat_te_LR = y_hat_te
+        self.y_hat_tr_LR = y_hat_tr    
+
     def plot_LLS_vs_SD(self):
         regressors = list(self.X_tr.columns)
         nn = np.arange(self.Nf)
@@ -48,18 +113,8 @@ class regression:
         plt.grid()
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\LLSvsSD_w_hat_weights')
-        #plt.show()
+        plt.show()
 
-    def steepestDescent(self):
-        y_tr = self.y_tr
-        X_tr = self.X_tr.values
-        m = mymin.steepestDescentAlgorithm(y_tr, X_tr)
-        m.run(Nit = 20, eps=1e-6)
-        self.w_hat_SD = m.sol
-        self.y_hat_te_SD = self.X_te.values @ self.w_hat_SD
-        self.y_hat_tr_SD = self.X_tr.values @ self.w_hat_SD
-        return
-    
     def plotHistrogram(self, title = "LLS-Error", algorithm = "LLS"):
         y_tr = self.y_tr
         y_te = self.y_te
@@ -106,9 +161,9 @@ class regression:
         plt.title(f'Regressione line for {title}')
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
-        #plt.show()
-
-    def denormalize(self, algorithm = "Default"):
+        plt.show()
+    
+    def denormalize(self):
     
         self.y_hat_te_LLS = self.y_hat_te_LLS * self.sy + self.my
         self.y_hat_tr_LLS = self.y_hat_tr_LLS * self.sy + self.my
@@ -171,44 +226,4 @@ class regression:
             print(results, "\n\n")
         return results
 
-    def localRegression(self, N):
-        y_hat_te = np.zeros([self.Nte, 1])
-        y_hat_tr = np.zeros([self.Ntr, 1])
-        X_te = self.X_te.values
-        X_tr = self.X_tr.values
-        for iter in range(self.Nte):
-            dist_te = []
-            dist_tr = []
-            for i in range(self.Ntr):
-                dist_te.append(euclidean_distance(X_te[iter, :], X_tr[i, :]))
-                dist_tr.append(euclidean_distance(X_tr[iter, :], X_tr[i, :]))
-            
-            neighbors_index_te = np.argsort(dist_te)
-            neighbors_index_tr = np.argsort(dist_tr)
-            neighbors_Xtr_te = np.zeros([N,self.Nf]) 
-            neighbors_ytr_te = np.zeros([N, 1])
-            neighbors_Xtr_tr = np.zeros([N,self.Nf])
-            neighbors_ytr_tr = np.zeros([N, 1])
-            for i in range(N):
-                
-                neighbors_Xtr_te[i] = X_tr[neighbors_index_te[i]]
-                neighbors_ytr_te[i] = self.y_tr[neighbors_index_te[i]]
-                 
-                neighbors_Xtr_tr[i] = X_tr[neighbors_index_tr[i]]
-                neighbors_ytr_tr[i] = self.y_tr[neighbors_index_tr[i]]
-
-
-            m1 = mymin.steepestDescentAlgorithm(neighbors_ytr_te, neighbors_Xtr_te)
-            m1.run()
-            w_hat_te = m1.sol
-            y_hat = X_te[iter, :] @ w_hat_te
-            y_hat_te[iter] = y_hat
-              
-            m2 = mymin.steepestDescentAlgorithm(neighbors_ytr_tr, neighbors_Xtr_tr)
-            m2.run()
-            w_hat_tr = m2.sol
-            y_hat = X_tr[iter, :] @ w_hat_tr
-            y_hat_tr[iter] = y_hat
-
-        self.y_hat_te_LR = y_hat_te
-        self.y_hat_tr_LR = y_hat_tr    
+    
