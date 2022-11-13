@@ -178,7 +178,7 @@ class LinearRegression:
         plt.axis('square')
         plt.ylabel(r'$\^y$')
         plt.grid()
-        plt.title(f'Regressione line for {title}')
+        plt.title(f'Regressione line for {algorithm}')
         plt.tight_layout()
         plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
         plt.show()

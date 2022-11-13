@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+np.random.seed(309709)
 # Simple function to perform the average
 def average(l):
     return sum(l)/len(l)
@@ -90,8 +91,8 @@ if __name__ == "__main__":
     R1.steepestDescent()
     # Compare the weight vectors found with LLS and SD 
     R1.plot_LLS_vs_SD()
-    # Local regression with N = 100, using steepest descent algorithm
-    R1.localRegression(100)
+    # Local regression with N = 40, using steepest descent algorithm
+    R1.localRegression(40)
     
     R1.denormalize()    # denormalize the data
     R1.plotRegressionLine(title="regressionline_LLS", algorithm="LLS")  # Regression line for LLS
@@ -136,8 +137,8 @@ if __name__ == "__main__":
         R1.LLS()
         # Steepest descent algorithm
         R1.steepestDescent()
-        # Local regression with N = 100, using steepest descent algorithm
-        R1.localRegression(100)
+        # Local regression with N = 40, using steepest descent algorithm
+        R1.localRegression(40)
         
         R1.denormalize()    # denormalize the data
         # Append the error dataframe defined in class LocalRegression for all the methods
