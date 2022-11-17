@@ -6,8 +6,14 @@ Created on Mon Oct 24 19:27:13 2022
 """
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import sub.minimization as mymin
+
+def euclidean_distance(p, q):
+  dist = np.sqrt(np.sum(np.square(p - q)))
+  return dist
+
 plt.close('all')
 Np=200 # number of points in the Gaussian random process
 Nm=21 # FIR filter memory 
@@ -83,6 +89,65 @@ plt.plot(t_star, y_hat, 'o')
 plt.plot(t_star, y_true, 'X')
 plt.plot(t, t * w_hat[0] + w_hat[1])
 plt.show()
+
+################### Data preparation #########################################
+x = pd.read_csv("C:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")  # read the dataset
+subj = pd.unique(x['subject#']) #unique values of patient ID
+
+X = pd.DataFrame()
+for k in subj:
+    xk = x[x['subject#'] == k]  #data of user k
+    xk1 = xk.copy()
+    xk1.test_time = xk1.test_time.astype(int)   #remove decimal values to consider just the day and not the hour
+    xk1['g'] = xk1['test_time'] # add a new feature g with test_time values
+    v = xk1.groupby('g').mean() # group by the g features(test_time) to have averaged values per day 
+    X = pd.concat([X,v], axis=0, ignore_index=True) #Concatenate the k-patients by row ignoring index
+
+features = list(x.columns)
+Np, Nc = X.shape
+Ntr = int(Np*0.5)   # Dimension training set
+Nval = Nte = int(Np*0.25)    # Dimensions test and validation sets
+
+Xsh = X.sample(frac=1, replace=False, random_state=309709, axis=0, ignore_index=True)   # Shuffle of the dataframe
+# Generate training and test matrices
+X_tr = Xsh[0:Ntr]   #dataframe of the training data
+mm = X_tr.mean()
+ss = X_tr.std()
+my = mm['total_UPDRS']  #mean of total_UPDRS
+sy = ss['total_UPDRS']  #st. dev. of total UPDRS
+
+# Generate the normalized training, test and validation datasets, remove unwanted regressors
+Xsh_norm=(Xsh-mm)/ss  #normalized data
+ysh_norm=Xsh_norm['total_UPDRS']  #regressand only
+Xsh_norm=Xsh_norm.drop(['total_UPDRS','subject#', 'Jitter:DDP', 'Shimmer:DDA', 'sex', 'test_time', 'Jitter(%)','Jitter(Abs)','Jitter:RAP','Jitter:PPQ5','Jitter:DDP','Shimmer','Shimmer(dB)','Shimmer:APQ3','Shimmer:APQ5','Shimmer:APQ11','Shimmer:DDA','NHR','HNR','RPDE','DFA'],axis=1) #regressors only, removing unwanted features
+
+X_tr = Xsh_norm[0:Ntr].values
+X_te = Xsh_norm[Ntr:Np-Nval].values
+X_val = Xsh_norm[Np-Nval:].values
+y_tr =  ysh_norm[0:Ntr].values
+y_te = ysh_norm[Ntr:Np-Nval].values
+y_val = ysh_norm[Np-Nval:].values
+
+################# GP Regression ###################################
+N = 10
+for k  in range(Nval):
+    x = X_val[k, :]
+    dist_tr = []
+    for i in range(Ntr):
+        dist_tr.append(euclidean_distance(x, X_tr[i, :]))
+    
+    # sort the indexes in ascending order
+    neighbors_index_tr = np.argsort(dist_tr)
+
+    neighbors_Xtr_tr = np.zeros([N, X_tr.shape[1]])
+    neighbors_ytr_tr = np.zeros([N, 1])
+    for i in range(N):
+        # take the N nearer neighbors to the sample
+        neighbors_Xtr_tr[i] = X_tr[neighbors_index_tr[i]]
+        #neighbors_ytr_tr[i] = self.y_tr[neighbors_index_tr[i]]
+pass
+
+
 #%% linear regression
 
 #%% Final plot

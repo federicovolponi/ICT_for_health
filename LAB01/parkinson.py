@@ -70,8 +70,6 @@ if __name__ == "__main__":
 
     Xsh = X.sample(frac=1, replace=False, random_state=309709, axis=0, ignore_index=True)   # Shuffle of the dataframe
     # Generate training and test matrices
-    Ntr = int(Np*0.5)
-    Nte = Np - Ntr
     X_tr = Xsh[0:Ntr]   #dataframe of the training data
     mm = X_tr.mean()
     ss = X_tr.std()
