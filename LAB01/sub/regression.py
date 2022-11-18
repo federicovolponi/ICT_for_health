@@ -127,7 +127,7 @@ class LinearRegression:
         plt.title('LLS-Optimized weights vs SD Optimized weights')
         plt.grid()
         plt.tight_layout()
-        plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\LLSvsSD_w_hat_weights')
+        #plt.savefig(f'charts\LLSvsSD_w_hat_weights')
         plt.show()
 
     def plotHistrogram(self, title = "LLS-Error", algorithm = "LLS"):
@@ -156,7 +156,7 @@ class LinearRegression:
         plt.grid()
         plt.title(f'{title} histograms using all the training dataset')
         plt.tight_layout()
-        plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}.png')
+        #plt.savefig(f'charts\{title}.png')
         plt.show()
         return
 
@@ -180,7 +180,7 @@ class LinearRegression:
         plt.grid()
         plt.title(f'Regressione line for {algorithm}')
         plt.tight_layout()
-        plt.savefig(f'C:\Coding\ICT_for_health\LAB01\charts\{title}')
+        #plt.savefig(f'charts\{title}')
         plt.show()
     
     def denormalize(self):

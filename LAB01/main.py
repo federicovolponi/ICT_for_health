@@ -18,7 +18,7 @@ def average(l):
 if __name__ == "__main__":
     
     ####################### Analysis of dataframe #########################################
-    x = pd.read_csv("C:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")  # read the dataset
+    x = pd.read_csv("parkinsons_updrs.csv")  # read the dataset
     print("Description of the dataframe:\n", x.describe().T)
     print("\n")
     x.info()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     plt.colorbar()
     plt.title("Correlation coefficients of the features")
     plt.tight_layout()
-    plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeff_features.png")
+    #plt.savefig("charts\corr_coeff_features.png")
     plt.show
 
     # Plot the correlation coefficient among total UPDRS and the other features
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     plt.xticks(np.arange(len(features)), features, rotation = 90)
     plt.title("Correlation coefficient among total UPDRS and the other features")
     plt.tight_layout()
-    plt.savefig("C:\Coding\ICT_for_health\LAB01\charts\corr_coeffTotal.png")
+    #plt.savefig("charts\corr_coeffTotal.png")
     plt.show()
 
 ######################## Linear Regression with seed = 309709 ##############################

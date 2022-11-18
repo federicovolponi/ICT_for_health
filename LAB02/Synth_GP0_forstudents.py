@@ -130,6 +130,7 @@ y_val = ysh_norm[Np-Nval:].values
 
 ################# GP Regression ###################################
 N = 10
+# Find the neighbors of sample x from training set
 for k  in range(Nval):
     x = X_val[k, :]
     dist_tr = []
@@ -145,9 +146,17 @@ for k  in range(Nval):
         # take the N nearer neighbors to the sample
         neighbors_Xtr_tr[i] = X_tr[neighbors_index_tr[i]]
         #neighbors_ytr_tr[i] = self.y_tr[neighbors_index_tr[i]]
+
+# Create covarinace matrix
+R = np.zeros([N, N])
+teta = 1
+sigma_v_2 = 0.001
+r_2 = 3
+for i in range(N):
+    for j in range(N):
+        R[i, j] = teta*np.exp(-np.linalg.norm(neighbors_Xtr_tr[i] - neighbors_Xtr_tr[j])/2*r_2) + sigma_v_2
+
 pass
-
-
 #%% linear regression
 
 #%% Final plot
