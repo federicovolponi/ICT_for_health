@@ -28,7 +28,7 @@ plt.grid()
 plt.xlabel('t (s)')
 plt.ylabel('h(t)')
 plt.title('Impulse response')
-plt.show()
+#plt.show()
 x=np.random.randn(Np,) # input white Gaussian process
 y=np.convolve(x,h,mode='same') # output filtered Gaussian process
 t=np.arange(len(y))
@@ -38,7 +38,7 @@ plt.plot(t,y)
 plt.xlabel('t (s)')
 plt.ylabel('y(t)')
 plt.title('Realization of the Gaussian random process')
-plt.show()
+#plt.show()
 #%%
 autocorr=np.exp(-(th/T)**2/2)
 plt.figure()
@@ -47,7 +47,7 @@ plt.xlabel(r'$\tau (s)$')
 plt.ylabel(r'$R_Y(\tau)$')
 plt.title('Autocorrelation function')
 plt.grid()
-plt.show()
+#plt.show()
 #%%
 M_sampled=10 # number of points used in GP regression
 t_sampled=np.random.choice(t,(M_sampled,),replace=False)
@@ -64,7 +64,7 @@ R=np.exp(-(delta_t_matr/T)**2/2)
 plt.matshow(R)
 plt.colorbar()
 plt.title('Theoretical covariance matrix')
-plt.show()
+#plt.show()
 #%% GP regression
 k = R[:-1, -1]
 R_N_1 = R[:-1, :-1]
@@ -88,7 +88,7 @@ plt.plot([t_star, t_star], [mean - std, mean + std])
 plt.plot(t_star, y_hat, 'o')
 plt.plot(t_star, y_true, 'X')
 plt.plot(t, t * w_hat[0] + w_hat[1])
-plt.show()
+#plt.show()
 
 ################### Data preparation #########################################
 x = pd.read_csv("C:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")  # read the dataset
@@ -130,9 +130,14 @@ y_val = ysh_norm[Np-Nval:].values
 
 ################# GP Regression ###################################
 N = 10
+teta = 1
+sigma_v_2 = 0.001
+r_2 = 3
+y_hat_GP = np.zeros(Nval)
 # Find the neighbors of sample x from training set
-for k  in range(Nval):
+for k in range(Nval):
     x = X_val[k, :]
+    y = y_val[k]
     dist_tr = []
     for i in range(Ntr):
         dist_tr.append(euclidean_distance(x, X_tr[i, :]))
@@ -141,22 +146,43 @@ for k  in range(Nval):
     neighbors_index_tr = np.argsort(dist_tr)
 
     neighbors_Xtr_tr = np.zeros([N, X_tr.shape[1]])
-    neighbors_ytr_tr = np.zeros([N, 1])
-    for i in range(N):
+    neighbors_y_tr = np.zeros([N - 1, 1])
+    for i in range(N - 1):
         # take the N nearer neighbors to the sample
         neighbors_Xtr_tr[i] = X_tr[neighbors_index_tr[i]]
-        #neighbors_ytr_tr[i] = self.y_tr[neighbors_index_tr[i]]
+        neighbors_y_tr[i] = y_tr[neighbors_index_tr[i]]
+    
+    neighbors_Xtr_tr[N - 1] = x
+    # Create covarinace matrix
+    R = np.zeros([N, N])
+    for i in range(N):
+        for j in range(N):
+            R[i, j] = teta*np.exp(-np.linalg.norm(neighbors_Xtr_tr[i] - neighbors_Xtr_tr[j])/2*r_2) + sigma_v_2
 
-# Create covarinace matrix
-R = np.zeros([N, N])
-teta = 1
-sigma_v_2 = 0.001
-r_2 = 3
-for i in range(N):
-    for j in range(N):
-        R[i, j] = teta*np.exp(-np.linalg.norm(neighbors_Xtr_tr[i] - neighbors_Xtr_tr[j])/2*r_2) + sigma_v_2
+    k_GP = R[:-1, -1]
+    R_N_1 = R[:-1, :-1]
+    d = R[-1, -1]
+    mu = k_GP.T @ np.linalg.inv(R_N_1) @ neighbors_y_tr
+    var = d - k_GP.T @ np.linalg.inv(R_N_1) @ neighbors_y_tr
+    std = np.sqrt(var)
 
-pass
+    y_hat_GP[k] = mu
+
+
+
+plt.figure(figsize=(6,4))
+plt.plot(y_hat_GP, y_val,'.')    # plot the points of the real regressand and of the estimation
+v=plt.axis()
+plt.plot([v[0],v[1]],[v[0],v[1]],'r',linewidth=2)
+plt.legend()
+plt.xlabel(r'$y$')
+plt.axis('square')
+plt.ylabel(r'$\^y$')
+plt.grid()
+plt.tight_layout()
+#plt.savefig(f'charts\{title}')
+plt.show()
+
 #%% linear regression
 
 #%% Final plot
