@@ -95,11 +95,21 @@ plt.show() """
 AUC_test2 = np.abs(scipy.integrate.trapezoid(sens, FA))
 
 # Find the best threshold (False negative small, Sensitivity high)
+prev = 0.01 #prevalence
+healthy = 1 - prev  # healthy
+FNR = 1 - sens
+# probability that a person with a negative test is truly healthy
+P_H_Tn = (spec * healthy)/(spec * healthy +  FA * prev)
+# probability that a person with a negative test is ill
+P_D_Tn = 1 - P_H_Tn
+# probability that a person with a positive test is truly ill
+P_D_Tp = (sens * prev)/(sens * prev + FNR * healthy)
+# probabilty that a person with a positive test is healthy
+P_H_Tp = 1 - P_D_Tp
+
 # P(D|Tp), P(D|Tn) versus threshold
-precision = sens/(sens + FA)    # P(D|Tp) precision
-P_D_Tn = spec/(spec + FA)
 plt.figure()
-plt.plot(thresh, precision, label= "Precision - P(D|Tp)")
+plt.plot(thresh, P_D_Tp, label= "P(D|Tp)")
 plt.plot(thresh,P_D_Tn, label="P(D|Tn)")
 plt.grid()
 plt.xlabel("Threshold")
@@ -107,10 +117,8 @@ plt.title("P(D|Tp), P(D|Tn) versus threshold")
 plt.legend()
 plt.show()
 # P(H|Tp), P(H|Tn) versus threshold
-NPV = spec/(spec + 1 - sens)
-P_H_Tp = sens/(sens + 1 - sens)
 plt.figure()
-plt.plot(thresh, NPV, label= "NPV - P(H|Tn)")
+plt.plot(thresh, P_H_Tn, label= "P(H|Tn)")
 plt.plot(thresh,P_H_Tp, label="P(H|Tp)")
 plt.grid()
 plt.xlabel("Threshold")
@@ -119,11 +127,56 @@ plt.legend()
 plt.show()
 # P(D|Tp) versus P(H|Tn)
 plt.figure()
-plt.plot(precision, NPV)
+plt.plot(P_D_Tp, P_H_Tn)
 plt.grid()
 plt.xlabel("P(D|Tp)")
 plt.ylabel("P(H|Tn)")
 plt.title("P(D|Tp) versus P(H|Tn) - Test 2")
+plt.show()
+
+prevalence = 0.01
+healthy = 1 - prevalence
+healthyTn = (spec*healthy)/(FPR*prevalence + spec*healthy)
+illTn = 1 - healthyTn
+illTp = (sens*prevalence)/(sens*prevalence + FNR*healthy)
+healthyTp = 1 - illTp
+
+plt.figure()    
+plt.plot(threshold, illTn,label=['Ill test negative'])
+plt.plot(threshold, illTp,label=['Ill test positive'])
+plt.grid()
+plt.legend()
+plt.title('Ill patient')
+plt.tight_layout()
+#plt.show()
+
+plt.figure()    
+plt.plot(threshold, healthyTn,label=['Healthy test negative'])
+plt.plot(threshold, healthyTp,label=['Healthy test positive'])
+plt.grid()
+plt.legend()
+plt.title('Healthy patient')
+plt.tight_layout()
+#plt.show()
+
+plt.figure()    
+plt.plot(threshold, healthyTn,label=['Healthy test negative'])
+plt.plot(threshold, illTp,label=['Ill test positive'])
+plt.grid()
+plt.legend()
+plt.title('Correct test')
+plt.tight_layout()
+#plt.show()
+
+plt.figure()    
+plt.plot(illTp,healthyTn)
+plt.grid()
+plt.xlabel('P(D|Tp)')
+plt.ylabel('P(H|Tn)')
+plt.title('P(D|Tp) over P(H|Tn)')
+if prevalence == 0.01:
+    plt.axis([0, 1, 0.990, 1])
+plt.tight_layout()
 plt.show()
 ######################### TEST 1 #####################################
 x = Test1
@@ -182,15 +235,6 @@ plt.show()
 AUC_test1 = np.abs(scipy.integrate.trapezoid(sens, FA))
 
 # Find the best threshold (False negative small, Sensitivity high)
-precision = sens/(sens + FA)    # P(D|Tp) precision
-P_D_Tn = spec/(spec + 1 - sens)
-plt.figure()
-plt.plot(thresh, precision, label= "Precision - P(D|Tp)")
-plt.plot(thresh,P_D_Tn, label="P(D|Tn)")
-plt.grid()
-plt.xlabel("Threshold")
-plt.legend()
-plt.show()
 
 
 # Print AUC for test 1 and test 2
