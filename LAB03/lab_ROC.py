@@ -132,8 +132,8 @@ plt.grid()
 plt.xlabel("P(D|Tp)")
 plt.ylabel("P(H|Tn)")
 plt.title("P(D|Tp) versus P(H|Tn) - Test 2")
-if prev == 0.01:
-    plt.axis([0, 1, 0.990, 1])
+""" if prev == 0.01:
+    plt.axis([0, 1, 0.990, 1]) """
 plt.tight_layout()
 plt.show()
 
@@ -224,3 +224,46 @@ if data_descr:
     plt.title('Correlation coefficients of the original dataset')
     plt.tight_layout()
     plt.show()
+
+# Find the best threshold (False negative small, Sensitivity high)
+prev = 0.01 #prevalence
+healthy = 1 - prev  # healthy
+FNR = 1 - sens
+# probability that a person with a negative test is truly healthy
+P_H_Tn = (spec * healthy)/(spec * healthy +  FA * prev)
+# probability that a person with a negative test is ill
+P_D_Tn = 1 - P_H_Tn
+# probability that a person with a positive test is truly ill
+P_D_Tp = (sens * prev)/(sens * prev + FNR * healthy)
+# probabilty that a person with a positive test is healthy
+P_H_Tp = 1 - P_D_Tp
+
+# P(D|Tp), P(D|Tn) versus threshold
+plt.figure()
+plt.plot(thresh, P_D_Tp, label= "P(D|Tp)")
+plt.plot(thresh,P_D_Tn, label="P(D|Tn)")
+plt.grid()
+plt.xlabel("Threshold")
+plt.title("P(D|Tp), P(D|Tn) versus threshold")
+plt.legend()
+plt.show()
+# P(H|Tp), P(H|Tn) versus threshold
+plt.figure()
+plt.plot(thresh, P_H_Tn, label= "P(H|Tn)")
+plt.plot(thresh,P_H_Tp, label="P(H|Tp)")
+plt.grid()
+plt.xlabel("Threshold")
+plt.title("P(H|Tp), P(H|Tn) versus threshold")
+plt.legend()
+plt.show()
+# P(D|Tp) versus P(H|Tn)
+plt.figure()
+plt.plot(P_D_Tp, P_H_Tn)
+plt.grid()
+plt.xlabel("P(D|Tp)")
+plt.ylabel("P(H|Tn)")
+plt.title("P(D|Tp) versus P(H|Tn) - Test 1  ")
+""" if prev == 0.01:
+    plt.axis([0, 1, 0.990, 1]) """
+plt.tight_layout()
+plt.show()
