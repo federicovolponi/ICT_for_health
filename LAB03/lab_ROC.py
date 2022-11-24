@@ -132,52 +132,12 @@ plt.grid()
 plt.xlabel("P(D|Tp)")
 plt.ylabel("P(H|Tn)")
 plt.title("P(D|Tp) versus P(H|Tn) - Test 2")
-plt.show()
-
-prevalence = 0.01
-healthy = 1 - prevalence
-healthyTn = (spec*healthy)/(FPR*prevalence + spec*healthy)
-illTn = 1 - healthyTn
-illTp = (sens*prevalence)/(sens*prevalence + FNR*healthy)
-healthyTp = 1 - illTp
-
-plt.figure()    
-plt.plot(threshold, illTn,label=['Ill test negative'])
-plt.plot(threshold, illTp,label=['Ill test positive'])
-plt.grid()
-plt.legend()
-plt.title('Ill patient')
-plt.tight_layout()
-#plt.show()
-
-plt.figure()    
-plt.plot(threshold, healthyTn,label=['Healthy test negative'])
-plt.plot(threshold, healthyTp,label=['Healthy test positive'])
-plt.grid()
-plt.legend()
-plt.title('Healthy patient')
-plt.tight_layout()
-#plt.show()
-
-plt.figure()    
-plt.plot(threshold, healthyTn,label=['Healthy test negative'])
-plt.plot(threshold, illTp,label=['Ill test positive'])
-plt.grid()
-plt.legend()
-plt.title('Correct test')
-plt.tight_layout()
-#plt.show()
-
-plt.figure()    
-plt.plot(illTp,healthyTn)
-plt.grid()
-plt.xlabel('P(D|Tp)')
-plt.ylabel('P(H|Tn)')
-plt.title('P(D|Tp) over P(H|Tn)')
-if prevalence == 0.01:
+if prev == 0.01:
     plt.axis([0, 1, 0.990, 1])
 plt.tight_layout()
 plt.show()
+
+
 ######################### TEST 1 #####################################
 x = Test1
 y = swab
