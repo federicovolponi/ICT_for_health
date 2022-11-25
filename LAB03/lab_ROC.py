@@ -99,11 +99,11 @@ prev = 0.01 #prevalence
 healthy = 1 - prev  # healthy
 FNR = 1 - sens
 # probability that a person with a negative test is truly healthy
-P_H_Tn = (spec * healthy)/(spec * healthy +  FA * prev)
+P_H_Tn = (spec * healthy)/(spec * healthy +  FNR * prev)
 # probability that a person with a negative test is ill
 P_D_Tn = 1 - P_H_Tn
 # probability that a person with a positive test is truly ill
-P_D_Tp = (sens * prev)/(sens * prev + FNR * healthy)
+P_D_Tp = (sens * prev)/(sens * prev + FA * healthy)
 # probabilty that a person with a positive test is healthy
 P_H_Tp = 1 - P_D_Tp
 
@@ -132,8 +132,8 @@ plt.grid()
 plt.xlabel("P(D|Tp)")
 plt.ylabel("P(H|Tn)")
 plt.title("P(D|Tp) versus P(H|Tn) - Test 2")
-""" if prev == 0.01:
-    plt.axis([0, 1, 0.990, 1]) """
+if prev == 0.01:
+    plt.axis([0, 1, 0.990, 1])
 plt.tight_layout()
 plt.show()
 
@@ -230,11 +230,11 @@ prev = 0.01 #prevalence
 healthy = 1 - prev  # healthy
 FNR = 1 - sens
 # probability that a person with a negative test is truly healthy
-P_H_Tn = (spec * healthy)/(spec * healthy +  FA * prev)
+P_H_Tn = (spec * healthy)/(spec * healthy +  FNR * prev)
 # probability that a person with a negative test is ill
 P_D_Tn = 1 - P_H_Tn
 # probability that a person with a positive test is truly ill
-P_D_Tp = (sens * prev)/(sens * prev + FNR * healthy)
+P_D_Tp = (sens * prev)/(sens * prev + FA * healthy)
 # probabilty that a person with a positive test is healthy
 P_H_Tp = 1 - P_D_Tp
 
@@ -263,7 +263,7 @@ plt.grid()
 plt.xlabel("P(D|Tp)")
 plt.ylabel("P(H|Tn)")
 plt.title("P(D|Tp) versus P(H|Tn) - Test 1  ")
-""" if prev == 0.01:
-    plt.axis([0, 1, 0.990, 1]) """
+if prev == 0.01:
+    plt.axis([0, 1, 0.990, 1])
 plt.tight_layout()
 plt.show()
