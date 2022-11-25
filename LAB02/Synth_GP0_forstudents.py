@@ -10,9 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sub.minimization as mymin
 
-def euclidean_distance(p, q):
-  dist = np.sqrt(np.sum(np.square(p - q)))
-  return dist
+
 
 plt.close('all')
 Np=200 # number of points in the Gaussian random process
