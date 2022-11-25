@@ -19,7 +19,7 @@ def calcSensSpec(thresh, x0, x1):
 
 # %%
 plt.close('all')
-xx = pd.read_csv("LAB03/covid_serological_results.csv")
+xx = pd.read_csv("covid_serological_results.csv")
 # results from swab: 0= no illness, 1 = unclear, 2=illness
 swab = xx.COVID_swab_res.values
 swab[swab >= 1] = 1  # non reliable values are considered positive
