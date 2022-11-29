@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import sub.minimization as mymin
+import sub.GPRegression as GPR
 
 
 
@@ -89,7 +90,7 @@ plt.plot(t, t * w_hat[0] + w_hat[1])
 #plt.show()
 
 ################### Data preparation #########################################
-x = pd.read_csv("C:\Coding\ICT_for_health\LAB01\parkinsons_updrs.csv")  # read the dataset
+x = pd.read_csv("LAB02/parkinsons_updrs.csv")  # read the dataset
 subj = pd.unique(x['subject#']) #unique values of patient ID
 
 X = pd.DataFrame()
@@ -129,55 +130,29 @@ y_val = ysh_norm[Np-Nval:].values
 ################# GP Regression ###################################
 N = 10
 teta = 1
-sigma_v_2_list = np.linspace(1, 10, 10)
-r_2_list = np.linspace(0.00001, 0.1, 10)
+sigma_v_2_list = np.linspace(1, 10, 5)
+r_2_list = np.linspace(0.00001, 0.1, 5)
 y_hat_GP = np.zeros(Nval)
 MSE_min = 1
-# Find the neighbors of sample x from training set
-for sigma_v_2 in sigma_v_2_list:
-    for r_2 in r_2_list:
-
-        for k in range(Nval):
-            x = X_val[k, :]
-            y = y_val[k]
-            dist_tr = []
-            for i in range(Ntr):
-                dist_tr.append(euclidean_distance(x, X_tr[i, :]))
-            
-            # sort the indexes in ascending order
-            neighbors_index_tr = np.argsort(dist_tr)
-
-            neighbors_Xtr_tr = np.zeros([N, X_tr.shape[1]])
-            neighbors_y_tr = np.zeros([N - 1, 1])
-            for i in range(N - 1):
-                # take the N nearer neighbors to the sample
-                neighbors_Xtr_tr[i] = X_tr[neighbors_index_tr[i]]
-                neighbors_y_tr[i] = y_tr[neighbors_index_tr[i]]
-            
-            neighbors_Xtr_tr[N - 1] = x
-            # Create covarinace matrix
-            R = np.zeros([N, N])
-            for i in range(N):
-                for j in range(N):
-                    R[i, j] = teta*np.exp(-np.linalg.norm(neighbors_Xtr_tr[i] - neighbors_Xtr_tr[j])/2*r_2) + sigma_v_2
-
-            k_GP = R[:-1, -1]
-            R_N_1 = R[:-1, :-1]
-            d = R[-1, -1]
-            mu = k_GP.T @ np.linalg.inv(R_N_1) @ neighbors_y_tr
-            var = d - k_GP.T @ np.linalg.inv(R_N_1) @ neighbors_y_tr
-            std = np.sqrt(var)
-
-            y_hat_GP[k] = mu
-
-        Err = y_hat_GP - y_val
-        MSE = np.mean(Err**2)
-        if MSE < MSE_min:
-            MSE_min = MSE
-            r_2_min = r_2
-            sigma_v_2_min = sigma_v_2
-print(f"\nMSE for r_2 = {r_2_min} and sigma_v_2 = {sigma_v_2_min}:  {MSE_min}")
-
+gpr = GPR.GPRegression(Xsh_norm, ysh_norm, Np, Ntr, Nval)   #GPR object initialization
+# Try the best hyperparameters to minimize MSE
+findParam = 0
+if findParam:
+    for sigma_v_2 in sigma_v_2_list:
+        for r_2 in r_2_list:
+            y_hat_GP = gpr.run(r_2, sigma_v_2, teta)  # run the GPR selecting the hyperparameters
+                
+            Err = y_hat_GP - y_val
+            MSE = np.mean(Err**2)
+            if MSE < MSE_min:
+                MSE_min = MSE
+                r_2_min = r_2
+                sigma_v_2_min = sigma_v_2
+    print(f"\nMSE for r_2 = {r_2_min} and sigma_v_2 = {sigma_v_2_min}:  {MSE_min}")
+r_2=0.01
+sigma_v_2=5.0
+teta=1
+y_hat_GP = gpr.run()
 # Plot regression line
 plt.figure(figsize=(6,4))
 plt.plot(y_hat_GP, y_val,'.')    # plot the points of the real regressand and of the estimation
@@ -189,6 +164,7 @@ plt.axis('square')
 plt.ylabel(r'$\^y$')
 plt.grid()
 plt.tight_layout()
+plt.title(f"r_2 = {r_2} sigma_v_2 = {sigma_v_2} teta = {teta}")
 #plt.savefig(f'charts\{title}')
 plt.show()
 

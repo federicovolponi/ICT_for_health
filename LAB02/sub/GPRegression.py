@@ -1,5 +1,6 @@
-import tools
+import sub.tools as tools
 import numpy as np
+
 class GPRegression():
     def __init__(self, X, y,Np, Ntr, Nval):
         self.X_tr = X[0:Ntr].values
@@ -10,7 +11,7 @@ class GPRegression():
         self.y_val = y[Np-Nval:].values
         self.Nval = Nval
         self.Ntr = Ntr
-        self.Nte = self.Xte.shape[0]
+        self.Nte = self.X_te.shape[0]
         self.y_hat_GP = np.zeros(Nval)
         return
     
@@ -47,4 +48,4 @@ class GPRegression():
             std = np.sqrt(var)
 
             self.y_hat_GP[k] = mu
-            return self.y_hat_GP
+        return self.y_hat_GP
