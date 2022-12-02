@@ -15,30 +15,16 @@ The 5-min signals are divided into 5-sec segments so that
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import sub.functions as myFn
 cm = plt.get_cmap('gist_rainbow')
 line_styles=['solid','dashed','dotted']
 #pd.set_option('display.precision', 3)
 #%%
-def generateDF(filedir,colnames,patients,activities,slices):
-    # get the data from files for the selected patients
-    # and selected activities
-    # concatenate all the slices
-    # generate a pandas dataframe with an added column: activity
-    x=pd.DataFrame()
-    for pat in patients:
-        for a in activities:
-            subdir='a'+f"{a:02d}"+'/p'+str(pat)+'/'
-            for s in slices:
-                filename=filedir+subdir+'s'+f"{s:02d}"+'.txt'
-                x1=pd.read_csv(filename,names=colnames)
-                x1['activity']=a*np.ones((x1.shape[0],),dtype=int)
-                x=pd.concat([x,x1], axis=0, join='outer', ignore_index=True, 
-                            keys=None, levels=None, names=None, verify_integrity=False, 
-                            sort=False, copy=True)
-    return x
+
 #%% initialization
 plt.close('all')
 filedir='LAB04/data/'
+pathCharts = 'LAB04/charts/'
 sensNames=[
         'T_xacc', 'T_yacc', 'T_zacc', 
         'T_xgyro','T_ygyro','T_zgyro',
@@ -112,24 +98,26 @@ slices=list(range(1,Nslices+1))# first Nslices to plot
 fs=25 # Hz, sampling frequency
 samplesPerSlice=fs*5 # samples in each slice
 #%% plot the measurements of each selected sensor for each of the activities
-for i in activities:
-    activities=[i]
-    x=generateDF(filedir,sensNamesSub,patients,activities,slices)
-    x=x.drop(columns=['activity'])
-    sensors=list(x.columns)
-    data=x.values
-    plt.figure(figsize=(6,6))
-    time=np.arange(data.shape[0])/fs # set the time axis
-    for k in range(len(sensors)):
-        lines=plt.plot(time,data[:,k],'.',label=sensors[k],markersize=1)
-        lines[0].set_color(cm(k//3*3/len(sensors)))
-        lines[0].set_linestyle(line_styles[k%3])
-    plt.legend()
-    plt.grid()
-    plt.xlabel('time (s)')
-    plt.tight_layout()
-    plt.title(actNames[i-1])
-#plt.show()
+plotSensAct = False
+if plotSensAct:
+    for i in activities:
+        activities=[i]
+        x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
+        x=x.drop(columns=['activity'])
+        sensors=list(x.columns)
+        data=x.values
+        plt.figure(figsize=(6,6))
+        time=np.arange(data.shape[0])/fs # set the time axis
+        for k in range(len(sensors)):
+            lines=plt.plot(time,data[:,k],'.',label=sensors[k],markersize=1)
+            lines[0].set_color(cm(k//3*3/len(sensors)))
+            lines[0].set_linestyle(line_styles[k%3])
+        plt.legend()
+        plt.grid()
+        plt.xlabel('time (s)')
+        plt.tight_layout()
+        plt.title(actNames[i-1])
+    #plt.show()
 #%% plot centroids and stand. dev. of sensor values
 print('Number of used sensors: ',len(sensors))
 centroids=np.zeros((NAc,len(sensors)))# centroids for all the activities
@@ -137,8 +125,9 @@ stdpoints=np.zeros((NAc,len(sensors)))# variance in cluster for each sensor
 plt.figure(figsize=(12,6))
 for i in range(1,NAc+1):
     activities=[i]
-    x=generateDF(filedir,sensNamesSub,patients,activities,slices)
+    x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
     x=x.drop(columns=['activity'])
+    #x = myFn.sampling(x)
     centroids[i-1,:]=x.mean().values
     plt.subplot(1,2,1)
     lines = plt.plot(centroids[i-1,:],label=actNamesShort[i-1])
@@ -160,6 +149,7 @@ plt.grid()
 plt.title('Standard deviation using '+str(len(sensors))+' sensors')
 plt.xticks(np.arange(x.shape[1]),list(x.columns),rotation=90)
 plt.tight_layout()
+plt.savefig(pathCharts + "CentroidandSTD.png")
 #plt.show()
 #%% between centroids distance 
 d=np.zeros((NAc,NAc))
@@ -171,6 +161,7 @@ plt.matshow(d)
 plt.colorbar()
 plt.xticks(np.arange(NAc),actNamesShort,rotation=90)
 plt.yticks(np.arange(NAc),actNamesShort)
+plt.savefig(pathCharts + "MatCentroidDistance.png")
 #plt.title('Between-centroids distance')
 
 #%% compare minimum distance between two centroids and mean distance from a cluster point
@@ -185,6 +176,7 @@ plt.grid()
 plt.xticks(np.arange(NAc),actNamesShort,rotation=90)
 plt.legend()
 plt.tight_layout()
+plt.savefig(pathCharts + "centroidDistance.png")
 # if the minimum distance is less than the mean distance, then some points of the cluster are closer 
 # to another centroid
 plt.show()
