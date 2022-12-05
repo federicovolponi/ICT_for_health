@@ -20,11 +20,45 @@ def generateDF(filedir,colnames,patients,activities,slices):
                           sort=False, copy=True)
   return x
 
-def sampling(x):
+# Function for sampling at different frequency (not 25 Hz)
+def sampling(x, n_samples):
     
     lenDf = len(x)
-    t = np.linspace(0, lenDf - 1, 60, dtype=int)
+    t = np.linspace(0, lenDf - 1, n_samples, dtype=int)
     sampled_x = pd.DataFrame(0, index = np.arange(len(t)), columns=x.columns)
     for i in range(len(t)):
         sampled_x.iloc[i] = x.iloc[t[i]]
     return sampled_x
+
+# Function for average each sensor on the three different axis
+
+def AverageSensors(x):
+    x = x.values
+    n_sensors = x.shape[1]
+    N = x.shape[0]
+    averaged_x = np.zeros([N, int(n_sensors/3)])
+    for i in range(N):
+        k = 0
+        for j in range(int(n_sensors/3)):
+            averaged_x[i][j] = np.linalg.norm(x[i, (j+k):(j+k+3)])
+            k += 2
+    averaged_x = pd.DataFrame(averaged_x, columns=['T_acc', 'T_gyro', 'T_mag',
+                                                    'RA_acc', 'RA_gyro', 'RA_mag',
+                                                    'LA_acc', 'LA_gyro,', 'LA_mag',
+                                                    'RL_acc', 'RL_gyro', 'RL_mag',
+                                                    'LL_acc', 'LL_gyro', 'LL_mag'])
+    return averaged_x
+
+def standardize_features(x):
+    features = x.columns
+    for feature in features:
+        x[feature] = np.log(x[feature]+1e-9)
+    return x
+
+def evaluateCorr(x): #correlation for sensors
+    x = x.values
+    corr_matr = np.zeros([x.shape[0], x.shape[0]])
+    for i in range(x.shape[0]):
+        for j in range(x.shape[0]):
+            corr_matr[i][j] = np.corrcoef(x[i], x[j])[0][1]
+    return corr_matr

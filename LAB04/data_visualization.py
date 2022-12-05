@@ -16,6 +16,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import sub.functions as myFn
+from sklearn.preprocessing import  StandardScaler
+from sklearn.decomposition import PCA
+import sklearn.cluster as sk
 cm = plt.get_cmap('gist_rainbow')
 line_styles=['solid','dashed','dotted']
 #pd.set_option('display.precision', 3)
@@ -97,6 +100,7 @@ Nslices=12 # number of slices to plot
 slices=list(range(1,Nslices+1))# first Nslices to plot
 fs=25 # Hz, sampling frequency
 samplesPerSlice=fs*5 # samples in each slice
+
 #%% plot the measurements of each selected sensor for each of the activities
 plotSensAct = False
 if plotSensAct:
@@ -120,37 +124,60 @@ if plotSensAct:
     #plt.show()
 #%% plot centroids and stand. dev. of sensor values
 print('Number of used sensors: ',len(sensors))
-centroids=np.zeros((NAc,len(sensors)))# centroids for all the activities
-stdpoints=np.zeros((NAc,len(sensors)))# variance in cluster for each sensor
-plt.figure(figsize=(12,6))
+n_averageSens = 45
+centroids=np.zeros((NAc,n_averageSens))# centroids for all the activities
+stdpoints=np.zeros((NAc,n_averageSens))# variance in cluster for each sensor
+# Evaluate centroids and std of sensor values
 for i in range(1,NAc+1):
     activities=[i]
     x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
     x=x.drop(columns=['activity'])
-    #x = myFn.sampling(x)
+    data = x.values
+    cluster = sk.DBSCAN(eps=9, min_samples=3).fit(data)  # fitting
+    ii = np.argwhere(cluster.labels_ == -1)[:, 0]  # outliers
+    x = x.drop(ii)
+    x = myFn.sampling(x, 30)
+    
+    #corr_matr = myFn.evaluateCorr(x)
     centroids[i-1,:]=x.mean().values
-    plt.subplot(1,2,1)
-    lines = plt.plot(centroids[i-1,:],label=actNamesShort[i-1])
-    lines[0].set_color(cm(i//3*3/NAc))
-    lines[0].set_linestyle(line_styles[i%3])
     stdpoints[i-1]=np.sqrt(x.var().values)
+
+# Plotting centroids and std of sensor values
+plotCentr = False
+if plotCentr:
+    plt.figure(figsize=(12,6))
+    for i in range(1,NAc+1):
+        activities=[i]
+        x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
+        x=x.drop(columns=['activity'])
+        data = x.values
+        cluster = sk.DBSCAN(eps=3.1).fit(data)  # fitting
+        ii = np.argwhere(cluster.labels_ == -1)[:, 0]  # outliers
+        x = x.drop(ii)
+        x = myFn.sampling(x, 60)
+        centroids[i-1,:]=x.mean().values
+        plt.subplot(1,2,1)
+        lines = plt.plot(centroids[i-1,:],label=actNamesShort[i-1])
+        lines[0].set_color(cm(i//3*3/NAc))
+        lines[0].set_linestyle(line_styles[i%3])
+        stdpoints[i-1]=np.sqrt(x.var().values)
+        plt.subplot(1,2,2)
+        lines = plt.plot(stdpoints[i-1,:],label=actNamesShort[i-1])
+        lines[0].set_color(cm(i//3*3/NAc))
+        lines[0].set_linestyle(line_styles[i%3])
+    plt.subplot(1,2,1)
+    plt.legend(loc='upper right')
+    plt.grid()
+    plt.title('Centroids using '+ str(len(sensors))+' sensors')
+    plt.xticks(np.arange(x.shape[1]),list(x.columns),rotation=90)
     plt.subplot(1,2,2)
-    lines = plt.plot(stdpoints[i-1,:],label=actNamesShort[i-1])
-    lines[0].set_color(cm(i//3*3/NAc))
-    lines[0].set_linestyle(line_styles[i%3])
-plt.subplot(1,2,1)
-plt.legend(loc='upper right')
-plt.grid()
-plt.title('Centroids using '+str(len(sensors))+' sensors')
-plt.xticks(np.arange(x.shape[1]),list(x.columns),rotation=90)
-plt.subplot(1,2,2)
-plt.legend(loc='upper right')
-plt.grid()
-plt.title('Standard deviation using '+str(len(sensors))+' sensors')
-plt.xticks(np.arange(x.shape[1]),list(x.columns),rotation=90)
-plt.tight_layout()
-plt.savefig(pathCharts + "CentroidandSTD.png")
-#plt.show()
+    plt.legend(loc='upper right')
+    plt.grid()
+    plt.title('Standard deviation using '+str(len(sensors))+' sensors')
+    plt.xticks(np.arange(x.shape[1]),list(x.columns),rotation=90)
+    plt.tight_layout()
+    plt.savefig(pathCharts + "CentroidandSTD.png")
+    #plt.show()
 #%% between centroids distance 
 d=np.zeros((NAc,NAc))
 for i in range(NAc):
@@ -162,7 +189,7 @@ plt.colorbar()
 plt.xticks(np.arange(NAc),actNamesShort,rotation=90)
 plt.yticks(np.arange(NAc),actNamesShort)
 plt.savefig(pathCharts + "MatCentroidDistance.png")
-#plt.title('Between-centroids distance')
+plt.title('Between-centroids distance')
 
 #%% compare minimum distance between two centroids and mean distance from a cluster point
 # and its centroid
