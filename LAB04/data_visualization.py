@@ -122,7 +122,8 @@ if plotSensAct:
         plt.tight_layout()
         plt.title(actNames[i-1])
     #plt.show()
-#%% plot centroids and stand. dev. of sensor values
+
+# plot centroids and stand. dev. of sensor values
 print('Number of used sensors: ',len(sensors))
 n_averageSens = 45
 centroids=np.zeros((NAc,n_averageSens))# centroids for all the activities
@@ -132,11 +133,18 @@ for i in range(1,NAc+1):
     activities=[i]
     x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
     x=x.drop(columns=['activity'])
+    #x = x.values
+    #x = StandardScaler().fit_transform(x)
+    #pca = PCA(n_components=30)
+    #x = pd.DataFrame(x, columns=sensNames)
+    #pca.fit_transform(x)
+    #components = pd.DataFrame(pca.components_,columns=x.columns)
+    #print(np.argmax(components.values[0]))
     data = x.values
-    cluster = sk.DBSCAN(eps=9, min_samples=3).fit(data)  # fitting
+    cluster = sk.DBSCAN(eps=20, min_samples=3).fit(data)  # fitting
     ii = np.argwhere(cluster.labels_ == -1)[:, 0]  # outliers
     x = x.drop(ii)
-    x = myFn.sampling(x, 30)
+    x = myFn.averageSampling(x, 25)
     
     #corr_matr = myFn.evaluateCorr(x)
     centroids[i-1,:]=x.mean().values

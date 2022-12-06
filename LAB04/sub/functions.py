@@ -62,3 +62,16 @@ def evaluateCorr(x): #correlation for sensors
         for j in range(x.shape[0]):
             corr_matr[i][j] = np.corrcoef(x[i], x[j])[0][1]
     return corr_matr
+
+def averageSampling(x, n_samp = 25):
+    features = x.columns
+    x = x.values
+    len_x = x.shape[0]
+    n_feat = x.shape[1]
+    new_x = np.zeros([int(len_x/n_samp), n_feat])
+    buff = 0
+    for i in range(0, new_x.shape[0]):
+        y = x[i:i+n_samp]
+        new_x[i] = x[i:i+n_samp].mean(axis=0)
+    new_x = pd.DataFrame(new_x, columns=features)
+    return new_x
