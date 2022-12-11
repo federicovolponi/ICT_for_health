@@ -96,10 +96,60 @@ actNamesSub=[actNamesShort[i-1] for i in activities] # short names of the select
 sensors=list(range(45)) # list of sensors
 sensNamesSub=[sensNames[i] for i in sensors] # names of selected sensors
 Nslices=12 # number of slices to plot
-#Ntot=60 #total number of slices
+NtotSlices=60 #total number of slices
 slices=list(range(1,Nslices+1))# first Nslices to plot
 fs=25 # Hz, sampling frequency
 samplesPerSlice=fs*5 # samples in each slice
+
+###################### Generate training and test set #####################################
+nTrainSlices = 10
+slicesTrain = list(range(1,nTrainSlices+1)) 
+slicesTest = list(range(nTrainSlices+1, NtotSlices+1))
+N_tr= nTrainSlices * NAc * 5
+X_train = np.zeros([N_tr, len(sensors)])
+N_te = (NtotSlices - nTrainSlices) * NAc * 5
+X_test = np.zeros([N_te, len(sensors)])
+iter_tr = 0
+iter_te = 0
+for i in range(1, NAc+1):
+    activities = [i]
+    # Training Set
+    x_tr=myFn.generateDF(filedir,sensNamesSub,patients,activities,slicesTrain)
+    x_tr=x_tr.drop(columns=['activity'])
+    x_tr = myFn.averageSampling(x_tr, 25)
+    x_tr = x_tr.values
+    X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
+    iter_tr += len(x_tr)
+    # Test set
+    x_te=myFn.generateDF(filedir,sensNamesSub,patients,activities,slicesTest)
+    x_te=x_te.drop(columns=['activity'])
+    x_te = myFn.averageSampling(x_te, 25)
+    x_te = x_te.values
+    X_test[iter_te:len(x_te)+iter_te, :] = x_te
+    iter_te += len(x_te)
+
+# plot centroids and stand. dev. of sensor values
+print('Number of used sensors: ',len(sensors))
+n_averageSens = 45
+centroids=np.zeros((NAc,n_averageSens))# centroids for all the activities
+stdpoints=np.zeros((NAc,n_averageSens))# variance in cluster for each sensor
+# Evaluate centroids and std of sensor values
+for i in range(1,NAc+1):
+    activities=[i]
+    x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
+    x=x.drop(columns=['activity'])
+    #x = x.values
+    #x = StandardScaler().fit_transform(x)
+    #pca = PCA(n_components=30)
+    #x = pd.DataFrame(x, columns=sensNames)
+    #pca.fit_transform(x)
+    #components = pd.DataFrame(pca.components_,columns=x.columns)
+    #print(np.argmax(components.values[0]))
+    x = myFn.averageSampling(x, 25)
+    
+    #corr_matr = myFn.evaluateCorr(x)
+    centroids[i-1,:]=x.mean().values
+    stdpoints[i-1]=np.sqrt(x.var().values)
 
 #%% plot the measurements of each selected sensor for each of the activities
 plotSensAct = False
@@ -123,34 +173,8 @@ if plotSensAct:
         plt.title(actNames[i-1])
     #plt.show()
 
-# plot centroids and stand. dev. of sensor values
-print('Number of used sensors: ',len(sensors))
-n_averageSens = 45
-centroids=np.zeros((NAc,n_averageSens))# centroids for all the activities
-stdpoints=np.zeros((NAc,n_averageSens))# variance in cluster for each sensor
-# Evaluate centroids and std of sensor values
-for i in range(1,NAc+1):
-    activities=[i]
-    x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
-    x=x.drop(columns=['activity'])
-    #x = x.values
-    #x = StandardScaler().fit_transform(x)
-    #pca = PCA(n_components=30)
-    #x = pd.DataFrame(x, columns=sensNames)
-    #pca.fit_transform(x)
-    #components = pd.DataFrame(pca.components_,columns=x.columns)
-    #print(np.argmax(components.values[0]))
-    data = x.values
-    cluster = sk.DBSCAN(eps=20, min_samples=3).fit(data)  # fitting
-    ii = np.argwhere(cluster.labels_ == -1)[:, 0]  # outliers
-    x = x.drop(ii)
-    x = myFn.averageSampling(x, 25)
-    
-    #corr_matr = myFn.evaluateCorr(x)
-    centroids[i-1,:]=x.mean().values
-    stdpoints[i-1]=np.sqrt(x.var().values)
-
 # Plotting centroids and std of sensor values
+
 plotCentr = False
 if plotCentr:
     plt.figure(figsize=(12,6))
