@@ -19,6 +19,7 @@ import sub.functions as myFn
 from sklearn.preprocessing import  StandardScaler
 from sklearn.decomposition import PCA
 import sklearn.cluster as sk
+from sklearn.cluster import KMeans
 cm = plt.get_cmap('gist_rainbow')
 line_styles=['solid','dashed','dotted']
 #pd.set_option('display.precision', 3)
@@ -107,6 +108,7 @@ slicesTrain = list(range(1,nTrainSlices+1))
 slicesTest = list(range(nTrainSlices+1, NtotSlices+1))
 N_tr= nTrainSlices * NAc * 5
 X_train = np.zeros([N_tr, len(sensors)])
+y_tr =np.zeros(N_tr)
 N_te = (NtotSlices - nTrainSlices) * NAc * 5
 X_test = np.zeros([N_te, len(sensors)])
 iter_tr = 0
@@ -115,8 +117,9 @@ for i in range(1, NAc+1):
     activities = [i]
     # Training Set
     x_tr=myFn.generateDF(filedir,sensNamesSub,patients,activities,slicesTrain)
-    x_tr=x_tr.drop(columns=['activity'])
     x_tr = myFn.averageSampling(x_tr, 25)
+    y_tr[iter_tr:len(x_tr)+iter_tr] = x_tr['activity']
+    x_tr=x_tr.drop(columns=['activity'])
     x_tr = x_tr.values
     X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
     iter_tr += len(x_tr)
@@ -127,6 +130,11 @@ for i in range(1, NAc+1):
     x_te = x_te.values
     X_test[iter_te:len(x_te)+iter_te, :] = x_te
     iter_te += len(x_te)
+####################### K-Means ###################################
+kmeans = KMeans(n_clusters=NAc, n_init=10, max_iter=300, random_state=309709)
+kmeans.fit(X_train)
+y_hat_tr = kmeans.labels_
+y_hat_te = kmeans.predict(X_test)
 
 # plot centroids and stand. dev. of sensor values
 print('Number of used sensors: ',len(sensors))
