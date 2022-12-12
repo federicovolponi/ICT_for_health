@@ -116,15 +116,17 @@ iter_te = 0
 for i in range(1, NAc+1):
     activities = [i]
     # Training Set
-    x_tr=myFn.generateDF(filedir,sensNamesSub,patients,activities,slicesTrain)
+    x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
+    x_tr = myFn.butter_lowpass_filter(x_tr, 1.2, 20, 2)
     x_tr = myFn.averageSampling(x_tr, 25)
-    y_tr[iter_tr:len(x_tr)+iter_tr] = x_tr['activity']
+    y = x_tr['activity']
+    y_tr[iter_tr:len(x_tr)+iter_tr] = y
     x_tr=x_tr.drop(columns=['activity'])
     x_tr = x_tr.values
     X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
     iter_tr += len(x_tr)
     # Test set
-    x_te=myFn.generateDF(filedir,sensNamesSub,patients,activities,slicesTest)
+    x_te=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTest)
     x_te=x_te.drop(columns=['activity'])
     x_te = myFn.averageSampling(x_te, 25)
     x_te = x_te.values
@@ -138,24 +140,31 @@ y_hat_te = kmeans.predict(X_test)
 
 # plot centroids and stand. dev. of sensor values
 print('Number of used sensors: ',len(sensors))
-n_averageSens = 45
-centroids=np.zeros((NAc,n_averageSens))# centroids for all the activities
-stdpoints=np.zeros((NAc,n_averageSens))# variance in cluster for each sensor
+n_sensors = 45
+centroids=np.zeros((NAc,n_sensors))# centroids for all the activities
+stdpoints=np.zeros((NAc,n_sensors))# variance in cluster for each sensor
 # Evaluate centroids and std of sensor values
 for i in range(1,NAc+1):
     activities=[i]
-    x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
-    x=x.drop(columns=['activity'])
-    #x = x.values
-    #x = StandardScaler().fit_transform(x)
-    #pca = PCA(n_components=30)
-    #x = pd.DataFrame(x, columns=sensNames)
-    #pca.fit_transform(x)
-    #components = pd.DataFrame(pca.components_,columns=x.columns)
-    #print(np.argmax(components.values[0]))
-    x = myFn.averageSampling(x, 25)
+    x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
+    t = np.linspace(0, 50, 1250)
+    #plt.figure()
+    #plt.plot(t, x['T_yacc'])
     
-    #corr_matr = myFn.evaluateCorr(x)
+    x1 = myFn.butter_lowpass_filter(x, 0.5, 50, 2)
+    x2 = myFn.butter_lowpass_filter(x, 0.5, 5, 2)
+    x3 = myFn.butter_lowpass_filter(x, 1.5, 25, 2)
+    #plt.plot(t, x1['T_yacc'], 'r')
+    #plt.plot(t, x2['T_yacc'], 'g')
+    #plt.plot(t, x3['T_yacc'], 'k')
+    #plt.show()
+    x = myFn.butter_lowpass_filter(x, 1.5, 25, 2)
+    x = myFn.averageSampling(x, 25)
+    x=x.drop(columns=['activity'])
+    #x = myFn.sampling(x, 50)
+    t = np.linspace(0, 50, 50)
+    plt.figure()
+    plt.plot(t, x['T_yacc'])
     centroids[i-1,:]=x.mean().values
     stdpoints[i-1]=np.sqrt(x.var().values)
 
@@ -164,7 +173,7 @@ plotSensAct = False
 if plotSensAct:
     for i in activities:
         activities=[i]
-        x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
+        x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slices)
         x=x.drop(columns=['activity'])
         sensors=list(x.columns)
         data=x.values
@@ -188,12 +197,8 @@ if plotCentr:
     plt.figure(figsize=(12,6))
     for i in range(1,NAc+1):
         activities=[i]
-        x=myFn.generateDF(filedir,sensNamesSub,patients,activities,slices)
+        x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slices)
         x=x.drop(columns=['activity'])
-        data = x.values
-        cluster = sk.DBSCAN(eps=3.1).fit(data)  # fitting
-        ii = np.argwhere(cluster.labels_ == -1)[:, 0]  # outliers
-        x = x.drop(ii)
         x = myFn.sampling(x, 60)
         centroids[i-1,:]=x.mean().values
         plt.subplot(1,2,1)
