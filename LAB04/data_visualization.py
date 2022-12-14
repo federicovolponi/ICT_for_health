@@ -20,6 +20,7 @@ from sklearn.preprocessing import  StandardScaler
 from sklearn.decomposition import PCA
 import sklearn.cluster as sk
 from sklearn.cluster import KMeans
+from sklearn.metrics import accuracy_score
 cm = plt.get_cmap('gist_rainbow')
 line_styles=['solid','dashed','dotted']
 #pd.set_option('display.precision', 3)
@@ -45,6 +46,7 @@ sensNames=[
         'LL_xacc', 'LL_yacc', 'LL_zacc', 
         'LL_xgyro','LL_ygyro','LL_zgyro',
         'LL_xmag', 'LL_ymag', 'LL_zmag']
+
 actNames=[
     'sitting',  # 1
     'standing', # 2
@@ -94,7 +96,8 @@ activities=list(range(1,19)) #list of indexes of activities to plot
 Num_activities=len(activities)
 NAc=19 # total number of activities
 actNamesSub=[actNamesShort[i-1] for i in activities] # short names of the selected activities
-sensors=list(range(45)) # list of sensors
+#sensors=list(range(45)) # list of sensors
+sensors = [3,4,5,6,7,8,12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44] # no acc sensors
 sensNamesSub=[sensNames[i] for i in sensors] # names of selected sensors
 Nslices=12 # number of slices to plot
 NtotSlices=60 #total number of slices
@@ -111,16 +114,16 @@ X_train = np.zeros([N_tr, len(sensors)])
 y_tr =np.zeros(N_tr)
 N_te = (NtotSlices - nTrainSlices) * NAc * 5
 X_test = np.zeros([N_te, len(sensors)])
+y_te =np.zeros(N_te)
 iter_tr = 0
 iter_te = 0
 for i in range(1, NAc+1):
     activities = [i]
     # Training Set
     x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-    x_tr = myFn.butter_lowpass_filter(x_tr, 1.2, 20, 2)
+    x_tr = myFn.butter_lowpass_filter(x_tr, 0.8, 25, 4)
     x_tr = myFn.averageSampling(x_tr, 25)
-    y = x_tr['activity']
-    y_tr[iter_tr:len(x_tr)+iter_tr] = y
+    y_tr[iter_tr:len(x_tr)+iter_tr] = i - 1
     x_tr=x_tr.drop(columns=['activity'])
     x_tr = x_tr.values
     X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
@@ -128,46 +131,38 @@ for i in range(1, NAc+1):
     # Test set
     x_te=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTest)
     x_te=x_te.drop(columns=['activity'])
+    x_te = myFn.butter_lowpass_filter(x_te, 0.8, 25, 4)
     x_te = myFn.averageSampling(x_te, 25)
+    y_te[iter_te:len(x_te)+iter_te] = i - 1
     x_te = x_te.values
     X_test[iter_te:len(x_te)+iter_te, :] = x_te
     iter_te += len(x_te)
-####################### K-Means ###################################
-kmeans = KMeans(n_clusters=NAc, n_init=10, max_iter=300, random_state=309709)
-kmeans.fit(X_train)
-y_hat_tr = kmeans.labels_
-y_hat_te = kmeans.predict(X_test)
 
-# plot centroids and stand. dev. of sensor values
+########################Centroids evaluation #############################
 print('Number of used sensors: ',len(sensors))
-n_sensors = 45
+n_sensors = len(sensors)
 centroids=np.zeros((NAc,n_sensors))# centroids for all the activities
 stdpoints=np.zeros((NAc,n_sensors))# variance in cluster for each sensor
 # Evaluate centroids and std of sensor values
 for i in range(1,NAc+1):
     activities=[i]
     x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-    t = np.linspace(0, 50, 1250)
-    #plt.figure()
-    #plt.plot(t, x['T_yacc'])
-    
-    x1 = myFn.butter_lowpass_filter(x, 0.5, 50, 2)
-    x2 = myFn.butter_lowpass_filter(x, 0.5, 5, 2)
-    x3 = myFn.butter_lowpass_filter(x, 1.5, 25, 2)
-    #plt.plot(t, x1['T_yacc'], 'r')
-    #plt.plot(t, x2['T_yacc'], 'g')
-    #plt.plot(t, x3['T_yacc'], 'k')
-    #plt.show()
-    x = myFn.butter_lowpass_filter(x, 1.5, 25, 2)
+    x = myFn.butter_lowpass_filter(x, 0.8, 25, 4)   #0.8, 25, 2
     x = myFn.averageSampling(x, 25)
     x=x.drop(columns=['activity'])
-    #x = myFn.sampling(x, 50)
-    t = np.linspace(0, 50, 50)
-    plt.figure()
-    plt.plot(t, x['T_yacc'])
     centroids[i-1,:]=x.mean().values
     stdpoints[i-1]=np.sqrt(x.var().values)
 
+####################### K-Means ###################################
+kmeans = KMeans(n_clusters=NAc, init=centroids, n_init=1, max_iter=20)
+kmeans.fit(X_train)
+y_hat_tr = kmeans.labels_
+y_hat_te = kmeans.predict(X_test)
+# Evaluate accuracy
+accuracy_tr = accuracy_score(y_hat_tr, y_tr)
+accuracy_te = accuracy_score(y_hat_te, y_te)
+print("Accuracy on train: ", accuracy_tr)
+print("Accuracy on test: ", accuracy_te)
 #%% plot the measurements of each selected sensor for each of the activities
 plotSensAct = False
 if plotSensAct:
