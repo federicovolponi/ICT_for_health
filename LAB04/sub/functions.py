@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 from scipy.signal import butter,filtfilt
-# Function to generate dataframes
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt# Function to generate dataframes
 def generateDF(filedir,colnames,sensors,patients,activities,slices):
     # get the data from files for the selected patients
     # and selected activities
@@ -88,3 +89,10 @@ def butter_lowpass_filter(df, cutoff, fs, order):
         filtDF[:, i] = y
     filtDF = pd.DataFrame(filtDF, columns=df.columns)
     return filtDF
+
+def myPCA(x):
+    x_norm = (x - x.mean())/x.std()
+    pca = PCA(n_components=3)
+    principal_components = pca.fit_transform(x_norm)
+    principalDf = pd.DataFrame(data=principal_components)
+    return principalDf

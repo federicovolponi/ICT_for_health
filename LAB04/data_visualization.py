@@ -20,7 +20,7 @@ from sklearn.preprocessing import  StandardScaler
 from sklearn.decomposition import PCA
 import sklearn.cluster as sk
 from sklearn.cluster import KMeans
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
 cm = plt.get_cmap('gist_rainbow')
 line_styles=['solid','dashed','dotted']
 #pd.set_option('display.precision', 3)
@@ -121,7 +121,7 @@ for i in range(1, NAc+1):
     activities = [i]
     # Training Set
     x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-    x_tr = myFn.butter_lowpass_filter(x_tr, 0.8, 25, 4)
+    x_tr = myFn.butter_lowpass_filter(x_tr, 0.8, 25, 2)
     x_tr = myFn.averageSampling(x_tr, 25)
     y_tr[iter_tr:len(x_tr)+iter_tr] = i - 1
     x_tr=x_tr.drop(columns=['activity'])
@@ -131,7 +131,7 @@ for i in range(1, NAc+1):
     # Test set
     x_te=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTest)
     x_te=x_te.drop(columns=['activity'])
-    x_te = myFn.butter_lowpass_filter(x_te, 0.8, 25, 4)
+    x_te = myFn.butter_lowpass_filter(x_te, 0.8, 25, 2)
     x_te = myFn.averageSampling(x_te, 25)
     y_te[iter_te:len(x_te)+iter_te] = i - 1
     x_te = x_te.values
@@ -147,7 +147,7 @@ stdpoints=np.zeros((NAc,n_sensors))# variance in cluster for each sensor
 for i in range(1,NAc+1):
     activities=[i]
     x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-    x = myFn.butter_lowpass_filter(x, 0.8, 25, 4)   #0.8, 25, 2
+    x = myFn.butter_lowpass_filter(x, 0.8, 25, 2)   #0.8, 25, 2
     x = myFn.averageSampling(x, 25)
     x=x.drop(columns=['activity'])
     centroids[i-1,:]=x.mean().values
@@ -163,6 +163,15 @@ accuracy_tr = accuracy_score(y_hat_tr, y_tr)
 accuracy_te = accuracy_score(y_hat_te, y_te)
 print("Accuracy on train: ", accuracy_tr)
 print("Accuracy on test: ", accuracy_te)
+
+conf_matr_tr = confusion_matrix(y_tr, y_hat_tr)
+cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_tr, display_labels = actNamesShort)
+cmd.plot(xticks_rotation=90)
+plt.show()
+conf_matr_te = confusion_matrix(y_te, y_hat_te)
+cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_te, display_labels = actNamesShort)
+cmd.plot(xticks_rotation=90)
+plt.show()
 #%% plot the measurements of each selected sensor for each of the activities
 plotSensAct = False
 if plotSensAct:
