@@ -3,6 +3,10 @@ import pandas as pd
 from scipy.signal import butter,filtfilt
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt# Function to generate dataframes
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+
+
 def generateDF(filedir,colnames,sensors,patients,activities,slices):
     # get the data from files for the selected patients
     # and selected activities
@@ -96,3 +100,15 @@ def myPCA(x):
     principal_components = pca.fit_transform(x_norm)
     principalDf = pd.DataFrame(data=principal_components)
     return principalDf
+
+def featureImportance(X_train, y_train, X_test, y_test, columns):
+    trainedforest = RandomForestClassifier(n_estimators=500).fit(X_train,y_train)
+    predictionforest = trainedforest.predict(X_test)
+    print(classification_report(y_test,predictionforest))
+    plt.figure(num=None, figsize=(20, 22), dpi=80, facecolor='w', edgecolor='k')
+
+    feat_importances = pd.Series(trainedforest.feature_importances_, index= columns)
+    feat_importances.nlargest(25).plot(kind='barh')
+    
+    
+    

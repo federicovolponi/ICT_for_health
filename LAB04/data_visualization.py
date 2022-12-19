@@ -96,8 +96,9 @@ activities=list(range(1,19)) #list of indexes of activities to plot
 Num_activities=len(activities)
 NAc=19 # total number of activities
 actNamesSub=[actNamesShort[i-1] for i in activities] # short names of the selected activities
-#sensors=list(range(45)) # list of sensors
-sensors = [3,4,5,6,7,8,12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44] # no acc sensors
+sensors=list(range(45)) # list of sensors
+#sensors = [3,4,5,6,7,8,12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44] # no acc sensors
+#sensors = [2, 6,7,8,10, 11, 15,16,17, 20, 24,25,26, 33,34,35,36, 37, 42,44]
 sensNamesSub=[sensNames[i] for i in sensors] # names of selected sensors
 Nslices=12 # number of slices to plot
 NtotSlices=60 #total number of slices
@@ -138,6 +139,7 @@ for i in range(1, NAc+1):
     X_test[iter_te:len(x_te)+iter_te, :] = x_te
     iter_te += len(x_te)
 
+myFn.featureImportance(X_train, y_tr, X_test, y_te, sensNamesSub )
 ########################Centroids evaluation #############################
 print('Number of used sensors: ',len(sensors))
 n_sensors = len(sensors)
