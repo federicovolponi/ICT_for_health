@@ -3,7 +3,7 @@ import pandas as pd
 from scipy.signal import butter,filtfilt
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt# Function to generate dataframes
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier 
 from sklearn.metrics import classification_report
 
 
@@ -102,13 +102,21 @@ def myPCA(x):
     return principalDf
 
 def featureImportance(X_train, y_train, X_test, y_test, columns):
-    trainedforest = RandomForestClassifier(n_estimators=500).fit(X_train,y_train)
-    predictionforest = trainedforest.predict(X_test)
+    n_largest = 20  #20
+    trainedtree = DecisionTreeClassifier().fit(X_train,y_train)
+    predictionforest = trainedtree.predict(X_test)
     print(classification_report(y_test,predictionforest))
     plt.figure(num=None, figsize=(20, 22), dpi=80, facecolor='w', edgecolor='k')
 
-    feat_importances = pd.Series(trainedforest.feature_importances_, index= columns)
-    feat_importances.nlargest(25).plot(kind='barh')
+    feat_importances = pd.Series(trainedtree.feature_importances_, index= columns)
+    feat_importances.nlargest(n_largest).plot(kind='barh')
+    features = feat_importances.nlargest(n_largest)
+    return features
     
-    
-    
+def mapSensors(feat_importances, sensDic):
+    feat = list(feat_importances.index)
+    sensors = []
+    for i in range(len(feat_importances)):
+        sensors.append(sensDic.get(feat[i]))
+    sensors.sort()
+    return sensors
