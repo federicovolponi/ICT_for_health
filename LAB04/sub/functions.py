@@ -136,11 +136,13 @@ def normalize(x):
     x = (x - x.mean())/x.std()
     return x
 
-""" def interpolation(df):
-    interpDF =  np.zeros([2*len(df), len(df.columns)])
+def interpolation(df):
+    interpDF =  np.zeros([int(3*len(df)), len(df.columns)])
     x = np.arange(len(df))
-    x_new = np.arange(0, len(df)-0.6, 0.5)
+    x_new = np.linspace(0, len(df)-1, num=int(len(df)*3))
     for i in range(len(df.columns)):
         f = interp1d(x, df.iloc[:, i])
         y = f(x_new)
-        interpDF[:, i] = f(x_new) """
+        interpDF[:, i] = y
+    interpDF = pd.DataFrame(interpDF, columns=df.columns)
+    return interpDF
