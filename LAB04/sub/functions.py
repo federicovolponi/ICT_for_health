@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
-from scipy.signal import butter,filtfilt
+from scipy.signal import butter,sosfilt
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt# Function to generate dataframes
 from sklearn.tree import DecisionTreeClassifier 
 from sklearn.metrics import classification_report
+from scipy.interpolate import interp1d
 
 
 def generateDF(filedir,colnames,sensors,patients,activities,slices):
@@ -84,12 +85,14 @@ def averageSampling(x, n_samp = 25):
 
 def butter_lowpass_filter(df, cutoff, fs, order):
     filtDF = np.zeros([len(df), len(df.columns)])
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
+    #nyq = 0.5 * fs
+    #cutoff = cutoff / nyq
+    #low_cutoff = cutoff[0]
+    #high_cutoff = cutoff[1]
     # Get the filter coefficients 
-    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    sos = butter(order, cutoff, btype='lowpass', fs=fs, analog=False, output='sos')
     for i in range(len(df.columns)):
-        y = filtfilt(b, a, df.iloc[:, i])
+        y = sosfilt(sos, df.iloc[:, i])
         filtDF[:, i] = y
     filtDF = pd.DataFrame(filtDF, columns=df.columns)
     return filtDF
@@ -111,12 +114,33 @@ def featureImportance(X_train, y_train, X_test, y_test, columns):
     feat_importances = pd.Series(trainedtree.feature_importances_, index= columns)
     feat_importances.nlargest(n_largest).plot(kind='barh')
     features = feat_importances.nlargest(n_largest)
-    return features
+    return features.index.tolist()
     
 def mapSensors(feat_importances, sensDic):
-    feat = list(feat_importances.index)
+    feat = feat_importances
     sensors = []
     for i in range(len(feat_importances)):
         sensors.append(sensDic.get(feat[i]))
     sensors.sort()
     return sensors
+
+def featureImportanceVar(X, colNames, n_smallest):
+    X = pd.DataFrame(X, columns=colNames)
+    var_X = X.var()
+    var_Xlarge = var_X.nlargest(X.shape[1] - n_smallest)
+    var_XSmall = var_X.nsmallest(n_smallest)
+    features = var_XSmall.index.tolist()
+    return features
+
+def normalize(x):
+    x = (x - x.mean())/x.std()
+    return x
+
+""" def interpolation(df):
+    interpDF =  np.zeros([2*len(df), len(df.columns)])
+    x = np.arange(len(df))
+    x_new = np.arange(0, len(df)-0.6, 0.5)
+    for i in range(len(df.columns)):
+        f = interp1d(x, df.iloc[:, i])
+        y = f(x_new)
+        interpDF[:, i] = f(x_new) """

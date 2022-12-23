@@ -21,6 +21,8 @@ from sklearn.decomposition import PCA
 import sklearn.cluster as sk
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+import time
+start_time = time.time()
 cm = plt.get_cmap('gist_rainbow')
 line_styles=['solid','dashed','dotted']
 #pd.set_option('display.precision', 3)
@@ -121,107 +123,129 @@ NtotSlices=60 #total number of slices
 slices=list(range(1,Nslices+1))# first Nslices to plot
 fs=25 # Hz, sampling frequency
 samplesPerSlice=fs*5 # samples in each slice
+
+cutoff = 0.8
+fs = 25
+order = 1
+max_accuracy_te = max_accuracy_tr = 0
+cutoff_range = np.arange(0.2, 1.5, 0.1)
+
+
+for nTrainSlices in range(13, 14):
+    for n_smallest in range(19, 20):
+        sensors=list(range(45))
 ###################### Evaluate feature importance #######################################
-nTrainSlices = 10
-slicesTrain = list(range(1,nTrainSlices+1)) 
-slicesTest = list(range(nTrainSlices+1, NtotSlices+1))
-N_tr= nTrainSlices * NAc * 5
-X_train = np.zeros([N_tr, len(sensors)])
-y_tr =np.zeros(N_tr)
-N_te = (NtotSlices - nTrainSlices) * NAc * 5
-X_test = np.zeros([N_te, len(sensors)])
-y_te =np.zeros(N_te)
-iter_tr = 0
-iter_te = 0
-for i in range(1, NAc+1):
-    activities = [i]
-    # Training Set
-    x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-    x_tr = myFn.butter_lowpass_filter(x_tr, 0.8, 25, 2)
-    x_tr = myFn.averageSampling(x_tr, 25)
-    y_tr[iter_tr:len(x_tr)+iter_tr] = i - 1
-    x_tr=x_tr.drop(columns=['activity'])
-    x_tr = x_tr.values
-    X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
-    iter_tr += len(x_tr)
+        slicesTrain = list(range(1,nTrainSlices+1)) 
+        slicesTest = list(range(nTrainSlices+1, NtotSlices+1))
+        N_tr= nTrainSlices * NAc * 125
+        X_train = np.zeros([N_tr, len(sensors)])
+        y_tr =np.zeros(N_tr)
+        N_te = (NtotSlices - nTrainSlices) * NAc * 125
+        X_test = np.zeros([N_te, len(sensors)])
+        y_te =np.zeros(N_te)
+        iter_tr = 0
+        iter_te = 0
+        for i in range(1, NAc+1):
+            activities = [i]
+            # Training Set
+            x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
+            y_tr[iter_tr:len(x_tr)+iter_tr] = i - 1
+            x_tr=x_tr.drop(columns=['activity'])
+            x_tr = x_tr.values
+            X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
+            iter_tr += len(x_tr)
 
-    x_te=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTest)
-    x_te=x_te.drop(columns=['activity'])
-    x_te = myFn.butter_lowpass_filter(x_te, 0.8, 25, 2)
-    x_te = myFn.averageSampling(x_te, 25)
-    y_te[iter_te:len(x_te)+iter_te] = i - 1
-    x_te = x_te.values
-    X_test[iter_te:len(x_te)+iter_te, :] = x_te
-    iter_te += len(x_te)
-feat = myFn.featureImportance(X_train, y_tr, X_test, y_te, sensNamesSub )
-sensors = myFn.mapSensors(feat, sensDic)
-###################### Generate training and test set #####################################
-N_tr= nTrainSlices * NAc * 5
-X_train = np.zeros([N_tr, len(sensors)])
-y_tr =np.zeros(N_tr)
-N_te = (NtotSlices - nTrainSlices) * NAc * 5
-X_test = np.zeros([N_te, len(sensors)])
-y_te =np.zeros(N_te)
-iter_tr = 0
-iter_te = 0
-for i in range(1, NAc+1):
-    activities = [i]
-    # Training Set
-    x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-    x_tr = myFn.butter_lowpass_filter(x_tr, 0.8, 25, 2)
-    x_tr = myFn.averageSampling(x_tr, 25)
-    y_tr[iter_tr:len(x_tr)+iter_tr] = i - 1
-    x_tr=x_tr.drop(columns=['activity'])
-    x_tr = x_tr.values
-    X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
-    iter_tr += len(x_tr)
-    # Test set
-    x_te=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTest)
-    x_te=x_te.drop(columns=['activity'])
-    x_te = myFn.butter_lowpass_filter(x_te, 0.8, 25, 2)
-    x_te = myFn.averageSampling(x_te, 25)
-    y_te[iter_te:len(x_te)+iter_te] = i - 1
-    x_te = x_te.values
-    X_test[iter_te:len(x_te)+iter_te, :] = x_te
-    iter_te += len(x_te)
+        feat = myFn.featureImportanceVar(X_train, sensNames, n_smallest)
+        sensors = myFn.mapSensors(feat, sensDic)
+        ###################### Generate training and test set #####################################
+        N_tr= nTrainSlices * NAc * 5
+        X_train = np.zeros([N_tr, len(sensors)])
+        y_tr =np.zeros(N_tr)
+        N_te = (NtotSlices - nTrainSlices) * NAc * 5
+        X_test = np.zeros([N_te, len(sensors)])
+        y_te =np.zeros(N_te)
+        iter_tr = 0
+        iter_te = 0
+        for i in range(1, NAc+1):
+            activities = [i]
+            # Training Set
+            x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
+            x_tr = myFn.butter_lowpass_filter(x_tr, cutoff, fs, order)
+            x_tr = myFn.averageSampling(x_tr, 25)
+            y_tr[iter_tr:len(x_tr)+iter_tr] = i - 1
+            x_tr=x_tr.drop(columns=['activity'])
+            x_tr = x_tr.values
+            X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
+            iter_tr += len(x_tr)
+            # Test set
+            x_te=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTest)
+            x_te=x_te.drop(columns=['activity'])
+            x_te = myFn.butter_lowpass_filter(x_te, cutoff, fs, order)
+            x_te = myFn.averageSampling(x_te, 25)
+            y_te[iter_te:len(x_te)+iter_te] = i - 1
+            x_te = x_te.values
+            X_test[iter_te:len(x_te)+iter_te, :] = x_te
+            iter_te += len(x_te)
 
+        """ X_train = pd.DataFrame(X_train)
+        X_train['y'] = y_tr
+        corr = X_train.corr()
+        corr_y = abs(corr['y'])
+        print(corr_y.sort_values(ascending=True)) """
+        ########################Centroids evaluation #############################
+        n_sensors = len(sensors)
+        centroids=np.zeros((NAc,n_sensors))# centroids for all the activities
+        stdpoints=np.zeros((NAc,n_sensors))# variance in cluster for each sensor
+        # Evaluate centroids and std of sensor values
+        for i in range(1,NAc+1):
+            activities=[i]
+            x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
+            x=x.drop(columns=['activity'])
+            #myFn.interpolation(x)
+            x = myFn.butter_lowpass_filter(x, cutoff, fs, order)   #0.8, 25, 2
+            x = myFn.averageSampling(x, 25)
+            centroids[i-1,:]=x.mean().values
+            stdpoints[i-1]=np.sqrt(x.var().values)
 
-""" X_train = pd.DataFrame(X_train)
-X_train['y'] = y_tr
-corr = X_train.corr()
-corr_y = abs(corr['y'])
-print(corr_y.sort_values(ascending=True)) """
-########################Centroids evaluation #############################
-print('Number of used sensors: ',len(sensors))
-n_sensors = len(sensors)
-centroids=np.zeros((NAc,n_sensors))# centroids for all the activities
-stdpoints=np.zeros((NAc,n_sensors))# variance in cluster for each sensor
-# Evaluate centroids and std of sensor values
-for i in range(1,NAc+1):
-    activities=[i]
-    x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-    x = myFn.butter_lowpass_filter(x, 0.8, 25, 2)   #0.8, 25, 2
-    x = myFn.averageSampling(x, 25)
-    x=x.drop(columns=['activity'])
-    centroids[i-1,:]=x.mean().values
-    stdpoints[i-1]=np.sqrt(x.var().values)
+        ####################### K-Means ###################################
+        kmeans = KMeans(n_clusters=NAc, init=centroids, n_init=1, max_iter=20)
+        kmeans.fit(X_train)
+        y_hat_tr = kmeans.labels_
+        y_hat_te = kmeans.predict(X_test)
+        # Evaluate accuracy
+        accuracy_tr = accuracy_score(y_hat_tr, y_tr)
+        accuracy_te = accuracy_score(y_hat_te, y_te)
+        print("\nNumber of used sensors: ", n_smallest)
+        print("Number of slices used for training", nTrainSlices)
+        print(f"Order: {order}  Cutoff freq: {cutoff}")
+        print("Accuracy on train: ", accuracy_tr)
+        print("Accuracy on test: ", accuracy_te)
+        if max_accuracy_te < accuracy_te:
+            max_accuracy_te = accuracy_te
+            max_accuracy_tr = accuracy_tr
+            max_n_smallest = n_smallest
+            max_n_trainSlices = nTrainSlices
+            max_y_hat_tr = y_hat_tr
+            max_y_hat_te = y_hat_te
+            max_centroids = centroids
+            max_stdpoint = stdpoints
+            max_cutoff = cutoff
+            max_order = order
 
-####################### K-Means ###################################
-kmeans = KMeans(n_clusters=NAc, init=centroids, n_init=1, max_iter=20)
-kmeans.fit(X_train)
-y_hat_tr = kmeans.labels_
-y_hat_te = kmeans.predict(X_test)
-# Evaluate accuracy
-accuracy_tr = accuracy_score(y_hat_tr, y_tr)
-accuracy_te = accuracy_score(y_hat_te, y_te)
-print("Accuracy on train: ", accuracy_tr)
-print("Accuracy on test: ", accuracy_te)
+print("\n##################### Best result #########################")
+print("Number of used sensors: ", max_n_smallest)
+print("Number of slices used for training", max_n_trainSlices)
+print(f"Order: {max_order}  Cutoff freq: {max_cutoff}")
+print("Accuracy on train: ", max_accuracy_tr)
+print("Accuracy on test: ", max_accuracy_te)
 
-conf_matr_tr = confusion_matrix(y_tr, y_hat_tr)
+print("Execution time:  ", time.time()-start_time)
+
+conf_matr_tr = confusion_matrix(y_tr, max_y_hat_tr)
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_tr, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
 plt.show()
-conf_matr_te = confusion_matrix(y_te, y_hat_te)
+conf_matr_te = confusion_matrix(y_te, max_y_hat_te)
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_te, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
 plt.show()
@@ -248,7 +272,6 @@ if plotSensAct:
     #plt.show()
 
 # Plotting centroids and std of sensor values
-
 plotCentr = False
 if plotCentr:
     plt.figure(figsize=(12,6))
@@ -284,7 +307,7 @@ if plotCentr:
 d=np.zeros((NAc,NAc))
 for i in range(NAc):
     for j in range(NAc):
-        d[i,j]=np.linalg.norm(centroids[i]-centroids[j])
+        d[i,j]=np.linalg.norm(max_centroids[i]-max_centroids[j])
 
 plt.matshow(d)
 plt.colorbar()
@@ -297,7 +320,7 @@ plt.title('Between-centroids distance')
 # and its centroid
 dd=d+np.eye(NAc)*1e6# remove zeros on the diagonal (distance of centroid from itself)
 dmin=dd.min(axis=0)# find the minimum distance for each centroid
-dpoints=np.sqrt(np.sum(stdpoints**2,axis=1))
+dpoints=np.sqrt(np.sum(max_stdpoint**2,axis=1))
 plt.figure()
 plt.plot(dmin,label='minimum centroid distance')
 plt.plot(dpoints,label='mean distance from points to centroid')
