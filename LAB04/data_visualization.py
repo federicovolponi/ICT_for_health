@@ -124,7 +124,7 @@ slices=list(range(1,Nslices+1))# first Nslices to plot
 fs=25 # Hz, sampling frequency
 samplesPerSlice=fs*5 # samples in each slice
 
-cutoff = 1.5
+cutoff = 12
 fs = 25
 order = 1
 max_accuracy_te = max_accuracy_tr = 0
@@ -171,7 +171,7 @@ for nTrainSlices in range(13, 14):
             # Training Set
             x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
             x_tr = myFn.interpolation(x_tr)
-            x_tr = myFn.butter_lowpass_filter(x_tr, cutoff, fs, order)
+            #x_tr = myFn.butter_lowpass_filter(x_tr, cutoff, fs, order)
             x_tr = myFn.averageSampling(x_tr, sampling)
             y_tr[iter_tr:len(x_tr)+iter_tr] = i - 1
             x_tr=x_tr.drop(columns=['activity'])
@@ -181,8 +181,8 @@ for nTrainSlices in range(13, 14):
             # Test set
             x_te=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTest)
             x_te=x_te.drop(columns=['activity'])
-            #x_te = myFn.interpolation(x_te)
-            x_te = myFn.butter_lowpass_filter(x_te, cutoff, fs, order)
+            x_te = myFn.interpolation(x_te)
+            #x_te = myFn.butter_lowpass_filter(x_te, cutoff, fs, order)
             x_te = myFn.averageSampling(x_te, sampling)
             y_te[iter_te:len(x_te)+iter_te] = i - 1
             x_te = x_te.values
@@ -204,7 +204,7 @@ for nTrainSlices in range(13, 14):
             x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
             x=x.drop(columns=['activity'])
             x = myFn.interpolation(x)
-            x = myFn.butter_lowpass_filter(x, cutoff, fs, order)   #0.8, 25, 2
+            #x = myFn.butter_lowpass_filter(x, cutoff, fs, order)   #0.8, 25, 2
             x = myFn.averageSampling(x, sampling)
             centroids[i-1,:]=x.mean().values
             stdpoints[i-1]=np.sqrt(x.var().values)
