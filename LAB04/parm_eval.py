@@ -1,34 +1,31 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 30 15:04:25 2022
-
-@author: mvisintin
-
-Sensor units are calibrated to acquire data at 25 Hz sampling 
-frequency. 
-The 5-min signals are divided into 5-sec segments so that 
-480(=60x8) signal segments are obtained for each activity.
-
-"""
-#%% libraries
-import pandas as pd
+import sub.functions as myFn
+from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import numpy as np
-import sub.functions as myFn
-from sklearn.preprocessing import  StandardScaler
-from sklearn.decomposition import PCA
-import sklearn.cluster as sk
-from sklearn.cluster import KMeans
+import pandas as pd
 from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
-import time
-start_time = time.time()
-cm = plt.get_cmap('gist_rainbow')
-line_styles=['solid','dashed','dotted']
-#pd.set_option('display.precision', 3)
-#%%
 
-#%% initialization
+from scipy.signal import butter,sosfilt
+def butter_lowpass_filter(df, cutoff, fs, order):
+    filtDF = np.zeros([len(df), len(df.columns)])
+    #nyq = 0.5 * fs
+    #cutoff = cutoff / nyq
+    #low_cutoff = cutoff[0]
+    #high_cutoff = cutoff[1]
+    # Get the filter coefficients 
+    sos = butter(order, cutoff, btype='lowpass', fs=fs, analog=False, output='sos')
+    for i in range(len(df.columns)):
+        y = sosfilt(sos, df.iloc[:, i])
+        filtDF[:, i] = y
+    filtDF = pd.DataFrame(filtDF, columns=df.columns)
+    return filtDF
+
+'''
+Best parameter found so far:
+- nTrainSclices = 13
+- nSmallest = 19
+'''
+
 plt.close('all')
 filedir='LAB04/data/'
 pathCharts = 'LAB04/charts/'
@@ -86,6 +83,7 @@ actNames=[
     'jumping', # 18
     'playing basketball' # 19
     ]
+
 actNamesShort=[
     'sitting',  # 1
     'standing', # 2
@@ -107,6 +105,7 @@ actNamesShort=[
     'jumping', # 18
     'play.bb' # 19
     ]
+
 ID=309709
 s=ID%8+1
 patients=[s]  # list of selected patients
@@ -115,10 +114,8 @@ Num_activities=len(activities)
 NAc=19 # total number of activities
 actNamesSub=[actNamesShort[i-1] for i in activities] # short names of the selected activities
 sensors=list(range(45)) # list of sensors
-#sensors = [3,4,5,6,7,8,12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44] # no acc sensors
-
 sensNamesSub=[sensNames[i] for i in sensors] # names of selected sensors
-Nslices=12 # number of slices to plot
+Nslices=13 # number of slices to plot
 NtotSlices=60 #total number of slices
 slices=list(range(1,Nslices+1))# first Nslices to plot
 fs=25 # Hz, sampling frequency
@@ -241,8 +238,6 @@ print(f"Order: {max_order}  Cutoff freq: {max_cutoff}")
 print("Accuracy on train: ", max_accuracy_tr)
 print("Accuracy on test: ", max_accuracy_te)
 
-print("Execution time:  ", time.time()-start_time)
-
 conf_matr_tr = confusion_matrix(y_tr, max_y_hat_tr)
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_tr, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
@@ -250,87 +245,4 @@ plt.show()
 conf_matr_te = confusion_matrix(y_te, max_y_hat_te)
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_te, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
-plt.show()
-#%% plot the measurements of each selected sensor for each of the activities
-plotSensAct = False
-if plotSensAct:
-    for i in activities:
-        activities=[i]
-        x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slices)
-        x=x.drop(columns=['activity'])
-        sensors=list(x.columns)
-        data=x.values
-        plt.figure(figsize=(6,6))
-        time=np.arange(data.shape[0])/fs # set the time axis
-        for k in range(len(sensors)):
-            lines=plt.plot(time,data[:,k],'.',label=sensors[k],markersize=1)
-            lines[0].set_color(cm(k//3*3/len(sensors)))
-            lines[0].set_linestyle(line_styles[k%3])
-        plt.legend()
-        plt.grid()
-        plt.xlabel('time (s)')
-        plt.tight_layout()
-        plt.title(actNames[i-1])
-    #plt.show()
-
-# Plotting centroids and std of sensor values
-plotCentr = False
-if plotCentr:
-    plt.figure(figsize=(12,6))
-    for i in range(1,NAc+1):
-        activities=[i]
-        x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slices)
-        x=x.drop(columns=['activity'])
-        x = myFn.sampling(x, 60)
-        centroids[i-1,:]=x.mean().values
-        plt.subplot(1,2,1)
-        lines = plt.plot(centroids[i-1,:],label=actNamesShort[i-1])
-        lines[0].set_color(cm(i//3*3/NAc))
-        lines[0].set_linestyle(line_styles[i%3])
-        stdpoints[i-1]=np.sqrt(x.var().values)
-        plt.subplot(1,2,2)
-        lines = plt.plot(stdpoints[i-1,:],label=actNamesShort[i-1])
-        lines[0].set_color(cm(i//3*3/NAc))
-        lines[0].set_linestyle(line_styles[i%3])
-    plt.subplot(1,2,1)
-    plt.legend(loc='upper right')
-    plt.grid()
-    plt.title('Centroids using '+ str(len(sensors))+' sensors')
-    plt.xticks(np.arange(x.shape[1]),list(x.columns),rotation=90)
-    plt.subplot(1,2,2)
-    plt.legend(loc='upper right')
-    plt.grid()
-    plt.title('Standard deviation using '+str(len(sensors))+' sensors')
-    plt.xticks(np.arange(x.shape[1]),list(x.columns),rotation=90)
-    plt.tight_layout()
-    plt.savefig(pathCharts + "CentroidandSTD.png")
-    #plt.show()
-#%% between centroids distance 
-d=np.zeros((NAc,NAc))
-for i in range(NAc):
-    for j in range(NAc):
-        d[i,j]=np.linalg.norm(max_centroids[i]-max_centroids[j])
-
-plt.matshow(d)
-plt.colorbar()
-plt.xticks(np.arange(NAc),actNamesShort,rotation=90)
-plt.yticks(np.arange(NAc),actNamesShort)
-plt.savefig(pathCharts + "MatCentroidDistance.png")
-plt.title('Between-centroids distance')
-
-#%% compare minimum distance between two centroids and mean distance from a cluster point
-# and its centroid
-dd=d+np.eye(NAc)*1e6# remove zeros on the diagonal (distance of centroid from itself)
-dmin=dd.min(axis=0)# find the minimum distance for each centroid
-dpoints=np.sqrt(np.sum(max_stdpoint**2,axis=1))
-plt.figure()
-plt.plot(dmin,label='minimum centroid distance')
-plt.plot(dpoints,label='mean distance from points to centroid')
-plt.grid()
-plt.xticks(np.arange(NAc),actNamesShort,rotation=90)
-plt.legend()
-plt.tight_layout()
-plt.savefig(pathCharts + "centroidDistance.png")
-# if the minimum distance is less than the mean distance, then some points of the cluster are closer 
-# to another centroid
 plt.show()
