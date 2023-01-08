@@ -184,6 +184,11 @@ y_hat_te = kmeans.predict(X_test)
 # Evaluate accuracy
 accuracy_tr = accuracy_score(y_hat_tr, y_tr)
 accuracy_te = accuracy_score(y_hat_te, y_te)
+print("\nNumber of used sensors: ", n_smallVarFeatures)
+print("List of used sensors:", feat)
+print("Number of slices used for training:", nTrainSlices)
+print(f"Overall accuracy on train: {accuracy_tr:.3f}")
+print(f"Overall accuracy on test: {accuracy_te:.3f}")
 accuracyAc_tr = []
 accuracyAc_te = []
 RowsAct_tr = int(N_tr / 19)
@@ -199,10 +204,7 @@ for i in range(NAc):
     iter_te += RowsAct_te
     print(f'{i+1}\t\t{accuracyAc_tr[i]:.3f}\t{accuracyAc_te[i]:.3f}\n')
 
-print("\nNumber of used sensors: ", n_smallVarFeatures)
-print("Number of slices used for training", nTrainSlices)
-print("Overall accuracy on train: ", accuracy_tr)
-print("Overall accuracy on test: ", accuracy_te)
+
 
 conf_matr_tr = confusion_matrix(y_tr, y_hat_tr)
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_tr, display_labels = actNamesShort)
