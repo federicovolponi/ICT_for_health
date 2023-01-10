@@ -37,22 +37,6 @@ sensNames=[
         'LL_xgyro','LL_ygyro','LL_zgyro',
         'LL_xmag', 'LL_ymag', 'LL_zmag']
 
-sensDic = {'T_xacc': 0, 'T_yacc':1, 'T_zacc':2, 
-        'T_xgyro':3,'T_ygyro':4,'T_zgyro':5,
-        'T_xmag':6, 'T_ymag':7, 'T_zmag':8,
-        'RA_xacc':9, 'RA_yacc':10, 'RA_zacc':11, 
-        'RA_xgyro':12,'RA_ygyro':13,'RA_zgyro':14,
-        'RA_xmag':15, 'RA_ymag':16, 'RA_zmag':17,
-        'LA_xacc':18, 'LA_yacc':19, 'LA_zacc':20, 
-        'LA_xgyro':21,'LA_ygyro':22,'LA_zgyro':23,
-        'LA_xmag':24, 'LA_ymag':25, 'LA_zmag':26,
-        'RL_xacc':27, 'RL_yacc':28, 'RL_zacc':29, 
-        'RL_xgyro':30,'RL_ygyro':31,'RL_zgyro':32,
-        'RL_xmag':33, 'RL_ymag':34, 'RL_zmag':35,
-        'LL_xacc':36, 'LL_yacc':37, 'LL_zacc':38, 
-        'LL_xgyro':39,'LL_ygyro':40,'LL_zgyro':41,
-        'LL_xmag':42, 'LL_ymag':43, 'LL_zmag':44}
-
 actNames=[
     'sitting',  # 1
     'standing', # 2
@@ -111,33 +95,15 @@ NtotSlices=60 #total number of slices
 slices=list(range(1,Nslices+1))# first Nslices to plot
 fs=25 # Hz, sampling frequency
 samplesPerSlice=fs*5 # samples in each slice
-########################################### Parameter settings ################################################
-nTrainSlices = 13
-n_smallVarFeatures = 19
+################################## Parameter settings #############################################
+nTrainSlices = 8
 slicesTrain = list(range(1,nTrainSlices+1)) 
 slicesTest = list(range(nTrainSlices+1, NtotSlices+1))
-nPoints = 3
-sampling = 25 * nPoints
-############################# Evaluate features with smallest variance on training set ##########################
+###################### Generate training and test set #####################################
 N_tr= nTrainSlices * NAc * 125
 X_train = np.zeros([N_tr, len(sensors)])
-iter_tr = 0
-for i in range(1, NAc+1):
-    activities = [i]
-    x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-    x_tr=x_tr.drop(columns=['activity'])
-    x_tr = x_tr.values
-    X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
-    iter_tr += len(x_tr)
-
-feat = myFn.featureImportanceVar(X_train, sensNames, n_smallVarFeatures)    # return the name of the features with smallest var
-sensors = myFn.mapSensors(feat, sensDic)    # map the features names to the sensors' names
-
-###################### Generate training and test set #####################################
-N_tr= int(N_tr / 25)
-X_train = np.zeros([N_tr, len(sensors)])
 y_tr =np.zeros(N_tr)
-N_te = (NtotSlices - nTrainSlices) * NAc * 5
+N_te = (NtotSlices - nTrainSlices) * NAc * 125
 X_test = np.zeros([N_te, len(sensors)])
 y_te =np.zeros(N_te)
 iter_tr = 0
@@ -146,23 +112,20 @@ for i in range(1, NAc+1):
     activities = [i]
     # Training Set
     x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-    x_tr = myFn.interpolation(x_tr, nPoints)
-    x_tr = myFn.averageSampling(x_tr, sampling)
     y_tr[iter_tr:len(x_tr)+iter_tr] = i - 1
     x_tr=x_tr.drop(columns=['activity'])
+    x_tr = myFn.cumulativeMovingAverage(x_tr)
     x_tr = x_tr.values
     X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
     iter_tr += len(x_tr)
     # Test set
     x_te=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTest)
-    x_te=x_te.drop(columns=['activity'])
-    x_te = myFn.interpolation(x_te, nPoints)
-    x_te = myFn.averageSampling(x_te, sampling)
     y_te[iter_te:len(x_te)+iter_te] = i - 1
+    x_te=x_te.drop(columns=['activity'])
+    x_te = myFn.cumulativeMovingAverage(x_te)
     x_te = x_te.values
     X_test[iter_te:len(x_te)+iter_te, :] = x_te
     iter_te += len(x_te)
-
 ################################### Centroids evaluation ######################################
 n_sensors = len(sensors)
 centroids=np.zeros((NAc,n_sensors))# centroids for all the activities
@@ -172,7 +135,7 @@ for i in range(1,NAc+1):
     activities=[i]
     x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
     x=x.drop(columns=['activity'])
-    x = myFn.averageSampling(x, sampling)
+    x = myFn.cumulativeMovingAverage(x)
     centroids[i-1,:]=x.mean().values
     stdpoints[i-1]=np.sqrt(x.var().values)
 
@@ -184,8 +147,7 @@ y_hat_te = kmeans.predict(X_test)
 # Evaluate accuracy
 accuracy_tr = accuracy_score(y_hat_tr, y_tr)
 accuracy_te = accuracy_score(y_hat_te, y_te)
-print("\nNumber of used sensors: ", n_smallVarFeatures)
-print("List of used sensors:", feat)
+print("\nNumber of used sensors: ", n_sensors)
 print("Number of slices used for training:", nTrainSlices)
 print(f"Overall accuracy on train: {accuracy_tr:.3f}")
 print(f"Overall accuracy on test: {accuracy_te:.3f}")
@@ -195,7 +157,7 @@ RowsAct_tr = int(N_tr / 19)
 RowsAct_te = int(N_te / 19)
 iter_tr = 0
 iter_te = 0
-print("Accuracy for each activity:\n")
+print("\nAccuracy for each activity:\n")
 print("Activity\tTrain\tTest")
 for i in range(NAc):
     accuracyAc_tr.append(accuracy_score(y_hat_tr[iter_tr:RowsAct_tr+iter_tr], y_tr[iter_tr:RowsAct_tr+iter_tr]))
@@ -204,25 +166,22 @@ for i in range(NAc):
     iter_te += RowsAct_te
     print(f'{i+1}\t\t{accuracyAc_tr[i]:.3f}\t{accuracyAc_te[i]:.3f}\n')
 
-
-
+################################## Display confusion matrices ###################################
 conf_matr_tr = confusion_matrix(y_tr, y_hat_tr)
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_tr, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
-plt.title("Confusion matrix for training set")
 plt.savefig(pathCharts + "ConfMatrTrain.png")
 plt.show()
 conf_matr_te = confusion_matrix(y_te, y_hat_te)
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_te, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
-plt.title("Confusion matrix for test set")
 plt.savefig(pathCharts + "ConfMatrTest.png")
 plt.show()
 
 ############### Plot the measurements of each selected sensor for each of the activities ######################
 plotSensAct = False # set True to plot
 if plotSensAct:
-    activities=list(range(1,19)) #list of indexes of activities to plot
+    activities=list(range(1,20)) #list of indexes of activities to plot
     for i in activities:
         activities=[i]
         x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slices)

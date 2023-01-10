@@ -128,8 +128,8 @@ max_accuracy_te = max_accuracy_tr = 0
 cutoff_range = np.arange(0.2, 1.5, 0.1)
 sampling = 75
 
-for nTrainSlices in range(13, 14):
-    for n_smallest in range(19, 20):
+for nTrainSlices in range(8, 9):
+    for n_smallest in range(45, 46):
         sensors=list(range(45))
 ###################### Evaluate feature importance #######################################
         slicesTrain = list(range(1,nTrainSlices+1)) 
@@ -154,11 +154,12 @@ for nTrainSlices in range(13, 14):
 
         feat = myFn.featureImportanceVar(X_train, sensNames, n_smallest)
         sensors = myFn.mapSensors(feat, sensDic)
+        #sensors = [6,7,8,15,16,17,24,25,26,33,34,35,42,43,44]
         ###################### Generate training and test set #####################################
-        N_tr= nTrainSlices * NAc * 5
+        N_tr= nTrainSlices * NAc * 125
         X_train = np.zeros([N_tr, len(sensors)])
         y_tr =np.zeros(N_tr)
-        N_te = (NtotSlices - nTrainSlices) * NAc * 5
+        N_te = (NtotSlices - nTrainSlices) * NAc * 125
         X_test = np.zeros([N_te, len(sensors)])
         y_te =np.zeros(N_te)
         iter_tr = 0
@@ -167,30 +168,29 @@ for nTrainSlices in range(13, 14):
             activities = [i]
             # Training Set
             x_tr=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
-            x_tr = myFn.interpolation(x_tr)
+            #x_tr = myFn.interpolation(x_tr)
             #x_tr = myFn.butter_lowpass_filter(x_tr, cutoff, fs, order)
-            x_tr = myFn.averageSampling(x_tr, sampling)
+            #x_tr = myFn.averageSampling(x_tr, sampling)
             y_tr[iter_tr:len(x_tr)+iter_tr] = i - 1
             x_tr=x_tr.drop(columns=['activity'])
+            x_tr = myFn.movingAverage(x_tr)
+
             x_tr = x_tr.values
             X_train[iter_tr:len(x_tr)+iter_tr, :] = x_tr
             iter_tr += len(x_tr)
             # Test set
             x_te=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTest)
             x_te=x_te.drop(columns=['activity'])
-            x_te = myFn.interpolation(x_te)
+            #x_te = myFn.interpolation(x_te)
             #x_te = myFn.butter_lowpass_filter(x_te, cutoff, fs, order)
-            x_te = myFn.averageSampling(x_te, sampling)
+            #x_te = myFn.averageSampling(x_te, sampling)
             y_te[iter_te:len(x_te)+iter_te] = i - 1
+            x_te = myFn.movingAverage(x_te)
+
             x_te = x_te.values
             X_test[iter_te:len(x_te)+iter_te, :] = x_te
             iter_te += len(x_te)
 
-        """ X_train = pd.DataFrame(X_train)
-        X_train['y'] = y_tr
-        corr = X_train.corr()
-        corr_y = abs(corr['y'])
-        print(corr_y.sort_values(ascending=True)) """
         ########################Centroids evaluation #############################
         n_sensors = len(sensors)
         centroids=np.zeros((NAc,n_sensors))# centroids for all the activities
@@ -200,9 +200,11 @@ for nTrainSlices in range(13, 14):
             activities=[i]
             x=myFn.generateDF(filedir,sensNamesSub,sensors, patients,activities,slicesTrain)
             x=x.drop(columns=['activity'])
-            x = myFn.interpolation(x)
+            x = myFn.movingAverage(x)
+
+            #x = myFn.interpolation(x)
             #x = myFn.butter_lowpass_filter(x, cutoff, fs, order)   #0.8, 25, 2
-            x = myFn.averageSampling(x, sampling)
+            #x = myFn.averageSampling(x, sampling)
             centroids[i-1,:]=x.mean().values
             stdpoints[i-1]=np.sqrt(x.var().values)
 
