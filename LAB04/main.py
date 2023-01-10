@@ -12,7 +12,6 @@ import numpy as np
 import sub.functions as myFn
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
-
 cm = plt.get_cmap('gist_rainbow')
 line_styles=['solid','dashed','dotted']
 
@@ -158,24 +157,27 @@ RowsAct_te = int(N_te / 19)
 iter_tr = 0
 iter_te = 0
 print("\nAccuracy for each activity:\n")
-print("Activity\tTrain\tTest")
 for i in range(NAc):
-    accuracyAc_tr.append(accuracy_score(y_hat_tr[iter_tr:RowsAct_tr+iter_tr], y_tr[iter_tr:RowsAct_tr+iter_tr]))
+    accuracyAc_tr.append(round(accuracy_score(y_hat_tr[iter_tr:RowsAct_tr+iter_tr], y_tr[iter_tr:RowsAct_tr+iter_tr]), 3))
     iter_tr += RowsAct_tr
-    accuracyAc_te.append(accuracy_score(y_hat_te[iter_te:RowsAct_te+iter_te], y_te[iter_te:RowsAct_te+iter_te]))
+    accuracyAc_te.append(round(accuracy_score(y_hat_te[iter_te:RowsAct_te+iter_te], y_te[iter_te:RowsAct_te+iter_te]), 3))
     iter_te += RowsAct_te
-    print(f'{i+1}\t\t{accuracyAc_tr[i]:.3f}\t{accuracyAc_te[i]:.3f}\n')
-
+    
+tabToprint = pd.DataFrame(columns=['Activity', 'Train', 'Test'])
+tabToprint['Activity'] = actNamesShort
+tabToprint['Train'] = accuracyAc_tr
+tabToprint['Test'] = accuracyAc_te
+print(tabToprint)
 ################################## Display confusion matrices ###################################
 conf_matr_tr = confusion_matrix(y_tr, y_hat_tr)
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_tr, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
-plt.savefig(pathCharts + "ConfMatrTrain.png")
+plt.savefig(pathCharts + "ConfMatrTrain.eps", format='eps')
 plt.show()
 conf_matr_te = confusion_matrix(y_te, y_hat_te)
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_te, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
-plt.savefig(pathCharts + "ConfMatrTest.png")
+plt.savefig(pathCharts + "ConfMatrTest.eps", format='eps')
 plt.show()
 
 ############### Plot the measurements of each selected sensor for each of the activities ######################
@@ -211,7 +213,7 @@ plt.matshow(d)
 plt.colorbar()
 plt.xticks(np.arange(NAc),actNamesShort,rotation=90)
 plt.yticks(np.arange(NAc),actNamesShort)
-plt.savefig(pathCharts + "MatCentroidDistance.png")
+plt.savefig(pathCharts + "MatCentroidDistance.eps", format='eps')
 plt.title('Between-centroids distance')
 
 ############### Compare minimum distance between two centroids and mean distance from a cluster point and its centroid #############
@@ -225,7 +227,7 @@ plt.grid()
 plt.xticks(np.arange(NAc),actNamesShort,rotation=90)
 plt.legend()
 plt.tight_layout()
-plt.savefig(pathCharts + "centroidDistance.png")
+plt.savefig(pathCharts + "centroidDistance.eps", format='eps')
 # if the minimum distance is less than the mean distance, then some points of the cluster are closer to another centroid
 plt.show()
 
@@ -258,6 +260,6 @@ if plotCentr:
     plt.title('Standard deviation using '+str(len(sensors))+' sensors')
     plt.xticks(np.arange(x.shape[1]),list(x.columns),rotation=90)
     plt.tight_layout()
-    plt.savefig(pathCharts + "CentroidandSTD.png")
+    plt.savefig(pathCharts + "CentroidandSTD.eps", format='eps')
     plt.show()
 
