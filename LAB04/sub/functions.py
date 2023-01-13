@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-from scipy.interpolate import interp1d
-
+import matplotlib.pyplot as plt
 ############################ Function to generate Dataframe #################################
 def generateDF(filedir,colnames,sensors,patients,activities,slices):
     # get the data from files for the selected patients
@@ -31,3 +30,9 @@ def cumulativeMovingAverage(df):
         avgDf[:, i] = x.expanding().mean()
     avgDf = pd.DataFrame(avgDf, columns=df.columns)
     return avgDf
+
+def plotSensorSignal(X, n_sensor, n_activity):
+    iter_act = int(X.shape[0]/19)
+    t = np.arange(0,  iter_act)
+    plt.figure()
+    plt.plot(t, X[iter_act * n_activity - iter_act:iter_act * n_activity, n_sensor])

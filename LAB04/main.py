@@ -107,6 +107,7 @@ X_test = np.zeros([N_te, len(sensors)])
 y_te =np.zeros(N_te)
 iter_tr = 0
 iter_te = 0
+
 for i in range(1, NAc+1):
     activities = [i]
     # Training Set
@@ -262,4 +263,25 @@ if plotCentr:
     plt.tight_layout()
     plt.savefig(pathCharts + "CentroidandSTD.eps", format='eps')
     plt.show()
+
+plotSignal = True
+plotSens = [7, 9]
+plotAct = [6, 12]
+if plotSignal:
+    for sens in plotSens:
+        sens = [sens]
+        for act in plotAct:
+            act = [act]
+            x=myFn.generateDF(filedir,sensNamesSub,sens, patients,act,slices)
+            t = t = np.arange(0,  x.shape[0])
+            x=x.drop(columns=['activity'])
+            
+            plt.figure()
+            plt.title(f"Activity: {actNamesShort[act[0]-1]}, sensor: {sensNames[sens[0]]}")
+            plt.plot(t, x, color='c', label='Before CMA')
+            x = myFn.cumulativeMovingAverage(x)
+            plt.plot(t, x, color='r', label='After CMA')
+            plt.grid()
+            plt.savefig(pathCharts + f"{actNamesShort[act[0]-1]}_{sensNames[sens[0]]}.eps", format='eps')
+            plt.show()
 
