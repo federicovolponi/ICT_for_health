@@ -17,8 +17,8 @@ line_styles=['solid','dashed','dotted']
 
 ######################################### Inizialization #############################################
 plt.close('all')
-filedir='LAB04/data/'
-pathCharts = 'LAB04/charts/'
+filedir='/data/'
+pathCharts = '/charts/'
 sensNames=[
         'T_xacc', 'T_yacc', 'T_zacc', 
         'T_xgyro','T_ygyro','T_zgyro',
@@ -173,12 +173,12 @@ print(tabToprint)
 conf_matr_tr = confusion_matrix(y_tr, y_hat_tr, normalize='true')
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_tr, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
-plt.savefig(pathCharts + "ConfMatrTrain.eps", format='eps')
+#plt.savefig(pathCharts + "ConfMatrTrain.eps", format='eps')
 plt.show()
 conf_matr_te = confusion_matrix(y_te, y_hat_te, normalize='true')
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_te, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
-plt.savefig(pathCharts + "ConfMatrTest.eps", format='eps')
+#plt.savefig(pathCharts + "ConfMatrTest.eps", format='eps')
 plt.show()
 
 ############### Plot the measurements of each selected sensor for each of the activities ######################
@@ -214,7 +214,7 @@ plt.matshow(d)
 plt.colorbar()
 plt.xticks(np.arange(NAc),actNamesShort,rotation=90)
 plt.yticks(np.arange(NAc),actNamesShort)
-plt.savefig(pathCharts + "MatCentroidDistance.eps", format='eps')
+#plt.savefig(pathCharts + "MatCentroidDistance.eps", format='eps')
 plt.title('Between-centroids distance')
 
 ############### Compare minimum distance between two centroids and mean distance from a cluster point and its centroid #############
@@ -228,7 +228,7 @@ plt.grid()
 plt.xticks(np.arange(NAc),actNamesShort,rotation=90)
 plt.legend()
 plt.tight_layout()
-plt.savefig(pathCharts + "centroidDistance.eps", format='eps')
+#plt.savefig(pathCharts + "centroidDistance.eps", format='eps')
 # if the minimum distance is less than the mean distance, then some points of the cluster are closer to another centroid
 plt.show()
 
@@ -261,7 +261,7 @@ if plotCentr:
     plt.title('Standard deviation using '+str(len(sensors))+' sensors')
     plt.xticks(np.arange(x.shape[1]),list(x.columns),rotation=90)
     plt.tight_layout()
-    plt.savefig(pathCharts + "CentroidandSTD.eps", format='eps')
+    #plt.savefig(pathCharts + "CentroidandSTD.eps", format='eps')
     plt.show()
 
 plotSignal = False
@@ -282,6 +282,6 @@ if plotSignal:
             x = myFn.cumulativeMovingAverage(x)
             plt.plot(t, x, color='r', label='After CMA')
             plt.grid()
-            plt.savefig(pathCharts + f"{actNamesShort[act[0]-1]}_{sensNames[sens[0]]}.eps", format='eps')
+            #plt.savefig(pathCharts + f"{actNamesShort[act[0]-1]}_{sensNames[sens[0]]}.eps", format='eps')
             plt.show()
 
