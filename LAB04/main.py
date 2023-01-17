@@ -170,12 +170,12 @@ tabToprint['Train'] = accuracyAc_tr
 tabToprint['Test'] = accuracyAc_te
 print(tabToprint)
 ################################## Display confusion matrices ###################################
-conf_matr_tr = confusion_matrix(y_tr, y_hat_tr)
+conf_matr_tr = confusion_matrix(y_tr, y_hat_tr, normalize='true')
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_tr, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
 plt.savefig(pathCharts + "ConfMatrTrain.eps", format='eps')
 plt.show()
-conf_matr_te = confusion_matrix(y_te, y_hat_te)
+conf_matr_te = confusion_matrix(y_te, y_hat_te, normalize='true')
 cmd = ConfusionMatrixDisplay(confusion_matrix=conf_matr_te, display_labels = actNamesShort)
 cmd.plot(xticks_rotation=90)
 plt.savefig(pathCharts + "ConfMatrTest.eps", format='eps')
@@ -264,7 +264,7 @@ if plotCentr:
     plt.savefig(pathCharts + "CentroidandSTD.eps", format='eps')
     plt.show()
 
-plotSignal = True
+plotSignal = False
 plotSens = [7, 9]
 plotAct = [6, 12]
 if plotSignal:
